@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.data.DistanceRequest;
 import uk.ac.ed.acp.cw2.data.LngLat;
+import uk.ac.ed.acp.cw2.data.NextPositionRequest;
 import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
 import uk.ac.ed.acp.cw2.service.CalculationService;
 
@@ -56,9 +57,19 @@ public class ServiceController {
         return calculationService.calculateDistanceTo(request.position1, request.position2);
     }
 
+    @PostMapping("/isCloseTo")
+    public boolean isCloseTo(@Valid @RequestBody DistanceRequest request){
+        return calculationService.isDistanceCloseTo(request.position1, request.position2);
+    }
 
+    @PostMapping("/nextPosition")
+    public LngLat nextPosition(@Valid @RequestBody NextPositionRequest request){
+        return calculationService.calculateNextPosition(request.start, request.angle);
+    }
+
+    //REMOVE!@!!!!!!!!
     @GetMapping("/demo")
     public String demo() {
         return "demo";
-    } //remove this endpoint
+    } //remove this endpoint ALSO REMOVE PDFS!!!
 }
