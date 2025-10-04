@@ -1,5 +1,6 @@
 package uk.ac.ed.acp.cw2.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
+import uk.ac.ed.acp.cw2.data.DistanceRequest;
+import uk.ac.ed.acp.cw2.data.LngLat;
 import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
+import uk.ac.ed.acp.cw2.service.CalculationService;
 
 import java.net.URL;
 import java.time.Instant;
@@ -26,6 +30,12 @@ public class ServiceController {
     @Value("${ilp.service.url}")
     public URL serviceUrl;
 
+    private final CalculationService calculationService;
+
+    public ServiceController(CalculationService calculationService) {
+        this.calculationService = calculationService;
+    }
+
 
     @GetMapping("/")
     public String index() {
@@ -37,11 +47,18 @@ public class ServiceController {
 
     @GetMapping("/uid")
     public String uid() {
-        return "s12345678";
+        return "s2486166";
     }
+
+
+    @PostMapping("/distanceTo")
+    public double distanceTo(@Valid @RequestBody DistanceRequest request){
+        return calculationService.calculateDistanceTo(request.position1, request.position2);
+    }
+
 
     @GetMapping("/demo")
     public String demo() {
         return "demo";
-    }
+    } //remove this endpoint
 }
