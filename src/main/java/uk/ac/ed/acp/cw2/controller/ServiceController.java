@@ -8,10 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
-import uk.ac.ed.acp.cw2.data.DistanceRequest;
-import uk.ac.ed.acp.cw2.data.LngLat;
-import uk.ac.ed.acp.cw2.data.NextPositionRequest;
-import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
+import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.service.CalculationService;
 
 import java.net.URL;
@@ -65,6 +62,11 @@ public class ServiceController {
     @PostMapping("/nextPosition")
     public LngLat nextPosition(@Valid @RequestBody NextPositionRequest request){
         return calculationService.calculateNextPosition(request.start, request.angle);
+    }
+
+    @PostMapping("/isInRegion")
+    public boolean isInRegion(@Valid @RequestBody IsInRegionRequest request){
+        return calculationService.inRegion(request.position, request.region.vertices);
     }
 
     //REMOVE!@!!!!!!!!
