@@ -63,7 +63,7 @@ public class ServiceController {
 
     @PostMapping("/nextPosition")
     public LngLat nextPosition(@Valid @RequestBody NextPositionRequest request){
-        if (request.angle % 22.5 != 0.0){ // make sure that angle is one of the 16 directions
+        if (request.angle % 22.5 != 0.0){ // make sure that the angle is one of the 16 directions
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid angle");
         }
         return calculationService.calculateNextPosition(request.start, request.angle);
@@ -79,9 +79,4 @@ public class ServiceController {
         return calculationService.inRegion(request.position, request.region.vertices);
     }
 
-    //REMOVE!@!!!!!!!!
-    @GetMapping("/demo")
-    public String demo() {
-        return "demo";
-    } //remove this endpoint ALSO REMOVE PDFS!!!
 }
