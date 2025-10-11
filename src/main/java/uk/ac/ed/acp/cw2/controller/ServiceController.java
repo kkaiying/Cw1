@@ -6,8 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.service.CalculationService;
 
@@ -61,11 +63,19 @@ public class ServiceController {
 
     @PostMapping("/nextPosition")
     public LngLat nextPosition(@Valid @RequestBody NextPositionRequest request){
+        if (request.angle % 22.5 != 0.0){ // make sure that angle is one of the 16 directions
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid angle");
+        }
         return calculationService.calculateNextPosition(request.start, request.angle);
     }
 
     @PostMapping("/isInRegion")
     public boolean isInRegion(@Valid @RequestBody IsInRegionRequest request){
+        LngLat[] vertices = request.region.vertices;
+        if (!vertices[0].lng.equals(vertices[vertices.length-1].lng) ||
+                !vertices[0].lat.equals(vertices[vertices.length-1].lat)){ // check for any open regions
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Region not closed");
+        }
         return calculationService.inRegion(request.position, request.region.vertices);
     }
 

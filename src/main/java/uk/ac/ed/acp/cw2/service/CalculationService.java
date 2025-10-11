@@ -36,13 +36,19 @@ public class CalculationService {
 
     // Use ray casting algorithm to check if a point is in a polygon
     public boolean inRegion(LngLat position, LngLat[] vertices){
+
         int counter = 0;
 
-        for (int i = 0; i < vertices.length; i++){
-            if (i == vertices.length - 1){ //exit loop once it reaches the final edge
+        for (int i = 0; i < vertices.length; i++){ // iterates through all the edges except the last one
+            if (i == vertices.length - 1){ // exit loop once it reaches the final edge
                 break;
             }
-            //edge is vertex i to vertex i+1
+
+            if (isOnTheEdge(position, vertices[i], vertices[i+1])){
+                return true;
+            }
+
+            // edge is vertex i to vertex i+1
             if (isBetweenLat(position, vertices[i], vertices[i+1])){ // checks if y coord is between the two points
                 if (isIntersectingOnRight(position, vertices[i], vertices[i+1])){
                     counter++;
@@ -51,6 +57,9 @@ public class CalculationService {
         }
 
         // check for the final edge
+        if (isOnTheEdge(position, vertices[vertices.length-1], vertices[0])){
+            return true;
+        }
         if ((isBetweenLat(position, vertices[vertices.length-1], vertices[0])) &&
                 isIntersectingOnRight(position, vertices[vertices.length-1], vertices[0])){
             counter++;
@@ -61,6 +70,22 @@ public class CalculationService {
         } else {
             return true;
         }
+    }
+
+    public boolean isOnTheEdge(LngLat position, LngLat vertex1, LngLat vertex2){
+        double cross_product = ((position.lat - vertex1.lat) * (vertex2.lng - vertex1.lng)) - ((position.lng - vertex1.lng) * (vertex2.lat - vertex1.lat));
+
+        if (Math.abs(cross_product) < 1e-10){ // checks if cross product is approx 0
+            double min_lng = Math.min(vertex1.lng, vertex2.lng);
+            double max_lng = Math.max(vertex1.lng, vertex2.lng);
+            double min_lat = Math.min(vertex1.lat, vertex2.lat);
+            double max_lat = Math.max(vertex1.lat, vertex2.lat);
+
+            if ((min_lng <= position.lng) && (position.lng <= max_lng) && (min_lat <= position.lat) &&  (position.lat <= max_lat)){ // checks that position is between the two vertices
+                return true; // position lays on the edge if cross product is 0 and position is a point between vertex1 and vertex2
+            }
+        }
+        return false;
     }
 
     public boolean isBetweenLat(LngLat position, LngLat vertex1, LngLat vertex2){
