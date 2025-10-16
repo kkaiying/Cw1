@@ -63,7 +63,7 @@ public class ServiceController {
 
     @PostMapping("/nextPosition")
     public LngLat nextPosition(@Valid @RequestBody NextPositionRequest request){
-        if (request.angle % 22.5 != 0.0){ // make sure that the angle is one of the 16 directions
+        if ((request.angle % 22.5 != 0.0) || (request.angle < 0) || (request.angle > 360)){ // make sure that the angle is one of the 16 directions
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid angle");
         }
         return calculationService.calculateNextPosition(request.start, request.angle);

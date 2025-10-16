@@ -48,7 +48,7 @@ public class CalculationService {
                 return true;
             }
 
-            // edge is vertex i to vertex i+1
+            // check edges from vertex i to vertex i+1
             if (isBetweenLat(position, vertices[i], vertices[i+1])){ // checks if y coord is between the two points
                 if (isIntersectingOnRight(position, vertices[i], vertices[i+1])){
                     counter++;
