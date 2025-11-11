@@ -4,10 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 public class Region {
-    @NotNull
-    @Valid
     public String name;
-    @NotNull
+    @NotNull(message = "Vertices cannot be null")
     @Valid
     public LngLat[] vertices;
 }

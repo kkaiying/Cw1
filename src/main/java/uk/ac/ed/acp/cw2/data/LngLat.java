@@ -6,7 +6,5 @@ public class LngLat {
     @NotNull(message = "Longitude cannot be null")
     public Double lng;
     @NotNull(message = "Latitude cannot be null")
-
     public Double lat;
-
 }

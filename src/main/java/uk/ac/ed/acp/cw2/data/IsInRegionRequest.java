@@ -4,10 +4,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 public class IsInRegionRequest {
-    @NotNull
+    @NotNull(message = "Position cannot be null")
     @Valid
     public LngLat position;
-    @NotNull
+    @NotNull(message = "Region cannot be null")
     @Valid
     public Region region;
 }

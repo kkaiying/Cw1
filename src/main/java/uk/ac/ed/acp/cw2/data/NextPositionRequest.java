@@ -4,10 +4,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 public class NextPositionRequest {
-    @NotNull
+    @NotNull(message = "Start cannot be null")
     @Valid
     public LngLat start;
-    @NotNull
+    @NotNull(message = "Angle cannot be null")
     @Valid
     public Double angle;
 }

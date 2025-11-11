@@ -36,8 +36,8 @@ public class ServiceControllerTest {
     }
 
     @Test
-    @DisplayName("distanceTo with valid date")
-    void testDistanceTo_valid() throws Exception{ //why throws Exception here
+    @DisplayName("distanceTo with valid data")
+    void testDistanceTo_valid() throws Exception{
         when(calculationService.calculateDistanceTo(any(LngLat.class), any(LngLat.class))).thenReturn(5.0);
 
         mockMvc.perform(post("/api/v1/distanceTo")
@@ -119,7 +119,7 @@ public class ServiceControllerTest {
 
     @Test
     @DisplayName("distanceTo with typo")
-    void testDistanceTo_typo() throws Exception{ //why throws Exception here
+    void testDistanceTo_typo() throws Exception{
         mockMvc.perform(post("/api/v1/distanceTo")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -137,6 +137,32 @@ public class ServiceControllerTest {
                         .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("distanceTo with duplicate data")
+    void testDistanceTo_duplicate() throws Exception{
+        when(calculationService.calculateDistanceTo(any(LngLat.class), any(LngLat.class))).thenReturn(5.0);
+
+        mockMvc.perform(post("/api/v1/distanceTo")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "position1": {
+                        "lng": 0.0,
+                        "lat": 0.0
+                    },
+                    "position2": {
+                        "lng": 0.0,
+                        "lat": 0.0
+                    },
+                    "position2": {
+                        "lng": 3.0,
+                        "lat": 4.0
+                    }
+                }
+              """))
+                .andExpect(status().isOk())
+                .andExpect(content().string("5.0"));
+    }
     @Test
     @DisplayName("isCloseTo true")
     void testIsCloseTo_true() throws Exception{
