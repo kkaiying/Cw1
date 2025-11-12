@@ -15,4 +15,9 @@ public class Drone {
     private double costPerMove;
     private double costInitial;
     private double costFinal;
+
+    public double calculateMaxCost() {
+        return costInitial + costFinal + (maxMoves * costPerMove);
+    }
+
 }

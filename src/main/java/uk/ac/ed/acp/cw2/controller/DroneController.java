@@ -1,7 +1,9 @@
 package uk.ac.ed.acp.cw2.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.dto.DroneDTO;
+import uk.ac.ed.acp.cw2.dto.MedDispatchRecDTO;
 import uk.ac.ed.acp.cw2.service.DroneService;
 
 import java.util.List;
@@ -26,5 +28,14 @@ public class DroneController {
         return droneService.getDroneDetails(id);
     }
 
+    @PostMapping("/queryAvailableDrones")
+    public List<Integer> queryAvailableDrones(@Valid @RequestBody MedDispatchRecDTO dto) {
+        return droneService.getAvailableDrones(dto);
+    }
+
+    @GetMapping("/queryAsPath/{attribute-name}/{attribute-value}")
+    public List<Integer> queryAsPath(@PathVariable("attribute-name") String name, @PathVariable("attribute-value") String value) {
+        return droneService.getQueryAsPath(name, value);
+    }
 
 }

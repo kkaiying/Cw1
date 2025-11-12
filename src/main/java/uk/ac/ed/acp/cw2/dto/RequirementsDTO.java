@@ -1,5 +1,14 @@
 package uk.ac.ed.acp.cw2.dto;
 
-public class RequirementsDTO {
+import jakarta.validation.constraints.NotNull;
 
+public class RequirementsDTO {
+    @NotNull
+    public double capacity;
+    @NotNull
+    public boolean cooling;
+    @NotNull
+    public boolean heating;
+    @NotNull
+    public double maxCost;
 }
