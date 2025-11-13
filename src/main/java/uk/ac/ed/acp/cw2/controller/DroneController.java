@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.dto.DroneDTO;
 import uk.ac.ed.acp.cw2.dto.MedDispatchRecDTO;
+import uk.ac.ed.acp.cw2.dto.QueryDTO;
 import uk.ac.ed.acp.cw2.service.DroneService;
 
 import java.util.List;
@@ -29,13 +30,18 @@ public class DroneController {
     }
 
     @PostMapping("/queryAvailableDrones")
-    public List<Integer> queryAvailableDrones(@Valid @RequestBody MedDispatchRecDTO dto) {
-        return droneService.getAvailableDrones(dto);
+    public List<Integer> queryAvailableDrones(@Valid @RequestBody List<MedDispatchRecDTO> dtos) {
+        return droneService.getAvailableDrones(dtos);
     }
 
     @GetMapping("/queryAsPath/{attribute-name}/{attribute-value}")
     public List<Integer> queryAsPath(@PathVariable("attribute-name") String name, @PathVariable("attribute-value") String value) {
         return droneService.getQueryAsPath(name, value);
+    }
+
+    @PostMapping("/query")
+    public List<Integer> query(@Valid @RequestBody List<QueryDTO> dto) {
+        return droneService.getQuery(dto);
     }
 
 }
