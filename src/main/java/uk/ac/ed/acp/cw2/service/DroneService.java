@@ -43,19 +43,19 @@ public class DroneService {
         return ilpRestService.getDronesForServicePoints();
     }
 
-    public List<Integer> getDronesWithCooling(boolean hasCooling) {
+    public List<String> getDronesWithCooling(boolean hasCooling) {
         List<Drone> drones = getAllDronesAsDataObject();
         return drones.stream().filter(drone -> drone.isHasCooling() == hasCooling).map(Drone::getId).collect(Collectors.toList());
     }
 
-    public DroneDTO getDroneDetails(int id) {
+    public DroneDTO getDroneDetails(String id) {
         DroneDTO[] droneDTOs = getAllDronesFromDatabase();
 
-        return Arrays.stream(droneDTOs).filter(drone -> drone.id == id).findFirst()
+        return Arrays.stream(droneDTOs).filter(drone -> drone.id.equals(id)).findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Drone not found!"));
     }
 
-    public List<Integer> getAvailableDrones(List<MedDispatchRecDTO> dtos) {
+    public List<String> getAvailableDrones(List<MedDispatchRecDTO> dtos) {
         return filterDroneByAttribute(drone -> canHandleAllDeliveries(drone, dtos))   ;
     }
 
@@ -85,25 +85,24 @@ public class DroneService {
         return false;
     }
 
-    private boolean isAvailableAtTime(int droneId, LocalDate date, LocalTime time) {
+    private boolean isAvailableAtTime(String droneId, LocalDate date, LocalTime time) {
         DronesForServicePointsDTO[] dronesAvailability = getDronesForServicePointsFromDB();
         DayOfWeek requestedDay = date.getDayOfWeek();
         boolean result = Arrays.stream(dronesAvailability)
                 .flatMap(servicePoint -> Arrays.stream(servicePoint.drones)) //flatten to 'drones' level
-                .filter(drone -> drone.id == droneId)
+                .filter(drone -> drone.id.equals(droneId))
                 .flatMap(drone -> Arrays.stream(drone.availability)) //flatten to the 'availability' level
                 .filter(availability -> availability.dayOfWeek == requestedDay)
                 .anyMatch(availability -> !time.isBefore(availability.from) && !time.isAfter(availability.until)); // from <= time <= until
         return result;
     }
 
-    public List<Integer> getQueryAsPath(String name, String value) {
+    public List<String> getQueryAsPath(String name, String value) {
         switch(name) {
             case "name":
                 return filterDroneByAttribute(drone -> drone.getName().equals(value));
             case "id":
-                int idValue = Integer.parseInt(value);
-                return filterDroneByAttribute(drone -> drone.getId() == idValue);
+                return filterDroneByAttribute(drone -> drone.getId().equals(value));
             case "capacity":
                 double capacityValue = Double.parseDouble(value);
                 return filterDroneByAttribute(drone -> drone.getCapacity() == capacityValue);
@@ -130,12 +129,12 @@ public class DroneService {
         }
     }
 
-    private List<Integer> filterDroneByAttribute(Predicate<Drone> condition) {
+    private List<String> filterDroneByAttribute(Predicate<Drone> condition) {
         List<Drone> drones = getAllDronesAsDataObject();
         return drones.stream().filter(condition).map(Drone::getId).collect(Collectors.toList());
     }
 
-    public List<Integer> getQuery (List<QueryDTO> queries) {
+    public List<String> getQuery (List<QueryDTO> queries) {
         List<Drone> drones = getAllDronesAsDataObject();
         for (QueryDTO query : queries) {
             drones = drones.stream().filter(drone -> hasQuery(drone, query)).collect(Collectors.toList());
@@ -149,7 +148,7 @@ public class DroneService {
                 return compareString(drone.getName(), query.operator, query.value);
             case "id":
                 int idValue = Integer.parseInt(query.value);
-                return compareNumber(drone.getId(), query.operator, idValue);
+                return compareString(drone.getId(), query.operator, query.value);
             case "capacity":
                 double capacityValue = Double.parseDouble(query.value);
                 return compareNumber(drone.getCapacity(), query.operator, capacityValue);

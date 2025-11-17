@@ -20,27 +20,27 @@ public class DroneController {
     }
 
     @GetMapping("/dronesWithCooling/{state}")
-    public List<Integer> dronesWithCooling(@PathVariable boolean state) {
+    public List<String> dronesWithCooling(@PathVariable boolean state) {
         return droneService.getDronesWithCooling(state);
     }
 
     @GetMapping("/droneDetails/{id}")
-    public DroneDTO droneDetails(@PathVariable int id) {
+    public DroneDTO droneDetails(@PathVariable String id) {
         return droneService.getDroneDetails(id);
     }
 
     @PostMapping("/queryAvailableDrones")
-    public List<Integer> queryAvailableDrones(@Valid @RequestBody List<MedDispatchRecDTO> dtos) {
+    public List<String> queryAvailableDrones(@Valid @RequestBody List<MedDispatchRecDTO> dtos) {
         return droneService.getAvailableDrones(dtos);
     }
 
     @GetMapping("/queryAsPath/{attribute-name}/{attribute-value}")
-    public List<Integer> queryAsPath(@PathVariable("attribute-name") String name, @PathVariable("attribute-value") String value) {
+    public List<String> queryAsPath(@PathVariable("attribute-name") String name, @PathVariable("attribute-value") String value) {
         return droneService.getQueryAsPath(name, value);
     }
 
     @PostMapping("/query")
-    public List<Integer> query(@Valid @RequestBody List<QueryDTO> dto) {
+    public List<String> query(@Valid @RequestBody List<QueryDTO> dto) {
         return droneService.getQuery(dto);
     }
 

@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class Drone {
     private String name;
-    private int id;
+    private String id;
     private boolean hasCooling;
     private boolean hasHeating;
     private double capacity;

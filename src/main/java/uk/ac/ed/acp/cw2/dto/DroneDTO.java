@@ -4,6 +4,10 @@ import java.security.DrbgParameters;
 
 public class DroneDTO {
     public String name;
-    public int id;
+    public String id;
     public CapabilityDTO capability;
+
+    public String getId() {
+        return id;
+    }
 }

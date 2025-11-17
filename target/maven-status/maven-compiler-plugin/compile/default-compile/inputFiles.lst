@@ -10,8 +10,11 @@
 /Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/data/NextPositionRequest.java
 /Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/data/Region.java
 /Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/data/RuntimeEnvironment.java
+/Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/dto/AvailabilityDTO.java
 /Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/dto/CapabilityDTO.java
 /Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/dto/DroneDTO.java
+/Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/dto/DronesAvailabilityDTO.java
+/Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/dto/DronesForServicePointsDTO.java
 /Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/dto/MedDispatchRecDTO.java
 /Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/dto/QueryDTO.java
 /Users/kaiying/Downloads/ilp_submission_1/src/main/java/uk/ac/ed/acp/cw2/dto/RequirementsDTO.java
