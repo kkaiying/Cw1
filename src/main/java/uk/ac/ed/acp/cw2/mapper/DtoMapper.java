@@ -29,7 +29,8 @@ public class DtoMapper {
                 dto.requirements.capacity,
                 dto.requirements.cooling,
                 dto.requirements.heating,
-                dto.requirements.maxCost
+                dto.requirements.maxCost,
+                dto.delivery
         );
     }
 }

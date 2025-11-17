@@ -37,7 +37,7 @@ public class CalculationService {
         double horizontal_dist = pos2.lat - pos1.lat;
 
         double distance = Math.sqrt((Math.pow(vertical_dist,2)) + Math.pow(horizontal_dist,2));
-        return distance < DISTANCE_TOLERANCE - EPSILON;
+        return distance < DISTANCE_TOLERANCE;
     }
 
     /**

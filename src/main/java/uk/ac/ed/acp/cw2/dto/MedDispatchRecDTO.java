@@ -2,6 +2,7 @@ package uk.ac.ed.acp.cw2.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import uk.ac.ed.acp.cw2.data.LngLat;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -16,4 +17,7 @@ public class MedDispatchRecDTO {
     @NotNull
     @Valid
     public RequirementsDTO requirements;
+    @NotNull
+    @Valid
+    public LngLat delivery;
 }

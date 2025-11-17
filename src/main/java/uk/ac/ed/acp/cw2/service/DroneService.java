@@ -147,7 +147,6 @@ public class DroneService {
             case "name":
                 return compareString(drone.getName(), query.operator, query.value);
             case "id":
-                int idValue = Integer.parseInt(query.value);
                 return compareString(drone.getId(), query.operator, query.value);
             case "capacity":
                 double capacityValue = Double.parseDouble(query.value);

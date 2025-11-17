@@ -16,4 +16,5 @@ public class MedDispatchRec {
     private boolean cooling;
     private boolean heating;
     private double maxCost;
+    private LngLat delivery;
 }
