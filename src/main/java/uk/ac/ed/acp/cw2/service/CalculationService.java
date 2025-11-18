@@ -69,7 +69,6 @@ public class CalculationService {
      * @return true if the position is inside the region or on the edge, false otherwise
      */
     public boolean inRegion(LngLat position, LngLat[] vertices){
-
         int counter = 0;
 
         for (int i = 0; i < vertices.length; i++){ // iterates through all the edges except the last one
@@ -158,5 +157,40 @@ public class CalculationService {
         if (position.lng < ( vertex1.lng + ((position.lat - vertex1.lat) / (vertex2.lat - vertex1.lat) * (vertex2.lng - vertex1.lng)))){
             return true;
         } return false;
+    }
+
+    /**
+     * Checks if two line segments intersect
+     * Line segment from p1 to p2 and line segment from p3 to p4
+     *
+     * @param p1 first point of line 1
+     * @param p2 second point of line 1
+     * @param p3 first point of line 2
+     * @param p4 second point of line 2
+     * @return true if the line segments intersect
+     */
+    public boolean linesIntersect(LngLat p1, LngLat p2, LngLat p3, LngLat p4) {
+        // determine the orientation of the lines
+        double d1 = crossProduct(p3, p4, p1);
+        double d2 = crossProduct(p3, p4, p2);
+        double d3 = crossProduct(p1, p2, p3);
+        double d4 = crossProduct(p1, p2, p4);
+
+        // check if lines cross
+        if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
+            return true;
+        }
+
+        // check if lines are collinear
+        if (Math.abs(d1) < EPSILON && isOnTheEdge(p1, p3, p4)) { return true;}
+        if (Math.abs(d2) < EPSILON && isOnTheEdge(p2, p3, p4)) { return true;}
+        if (Math.abs(d3) < EPSILON && isOnTheEdge(p3, p1, p2)) { return true;}
+        if (Math.abs(d4) < EPSILON && isOnTheEdge(p4, p1, p2)) { return true;}
+
+        return false;
+    }
+
+    private double crossProduct(LngLat a, LngLat b, LngLat c) {
+        return (c.lng - a.lng) * (b.lat - a.lat) - (b.lng - a.lng) * (c.lat - a.lat);
     }
 }

@@ -2,6 +2,8 @@ package uk.ac.ed.acp.cw2.service;
 
 import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.LngLat;
+import uk.ac.ed.acp.cw2.dto.MedDispatchRecDTO;
+import uk.ac.ed.acp.cw2.dto.RestrictedAreaDTO;
 
 import java.util.*;
 
@@ -30,47 +32,75 @@ public class PathFindingService {
         }
     }
 
-    public List<LngLat> findPath(LngLat start, LngLat goal) {
+    public List<LngLat> findPath(LngLat start, LngLat goal, RestrictedAreaDTO[] restrictedAreas) {
         PriorityQueue<Node> openSet = new PriorityQueue<>( // open set contains the nodes left to explore
-                Comparator.comparingDouble(n -> n.fScore)
+                Comparator.comparingDouble(n -> calculationService.calculateDistanceTo(n.position, goal))
         );
 
         Set<String> closedSet = new HashSet<>(); // nodes visited
         Map<String, Double> bestGScore = new HashMap<>();
 
+
         // initialising start point
         double heuristic = calculationService.calculateDistanceTo(start, goal);
+        System.out.println("Start to goal distance: " + heuristic);
+        System.out.println("Expected moves: ~" + (heuristic / 0.00015));
         Node startNode = new Node(start, 0, heuristic, null);
         openSet.add(startNode);
         bestGScore.put(roundedKey(start), 0.0);
 
+
+        int nodesExplored = 0; // debug, remove after
+        int duplicatesSkipped = 0;
+        int newPositions = 0;
+        int rejectedMovingAway = 0;
+
         while (!openSet.isEmpty()) { // keep looping as long as there are nodes left to explore
             Node current = openSet.poll(); // pop the element at the top of the queue
 
-            if (calculationService.isDistanceCloseTo(current.position, goal)) {
-                return reconstructPath(current);
-            }
-
             String key = roundedKey(current.position);
+
             if (closedSet.contains(key)) { // skip any nodes that are already explored
+                duplicatesSkipped++;
                 continue;
-            } else {
-                closedSet.add(key); // else add the node to closedSet
+            }
+            closedSet.add(key); // else add the node to closedSet
+            nodesExplored++;
+
+
+            if (calculationService.isDistanceCloseTo(current.position, goal)) {
+                System.out.println("Duplicates skipped: " + duplicatesSkipped);
+                System.out.println("New positions: " + newPositions);
+                System.out.println("Rejected moving away: " + rejectedMovingAway);
+                System.out.println("Nodes explored: " + nodesExplored);
+                System.out.println("Path length: " + reconstructPath(current).size());
+                return reconstructPath(current);
             }
 
             for (double angle : COMPASS_DIRECTIONS) {
                 LngLat neighbour = calculationService.calculateNextPosition(current.position, angle);
                 String neighbourKey = roundedKey(neighbour);
+
                 if (closedSet.contains(neighbourKey)) {
-                    continue; // skip if neighbour has been explored
-                }
-                double gScore = current.gScore + 1;
-                if (bestGScore.containsKey(neighbourKey) && bestGScore.get(neighbourKey) <= gScore) {
                     continue;
                 }
-                bestGScore.put(neighbourKey, gScore); // update best
-                double hScore = calculationService.calculateDistanceTo(neighbour, goal);
-                double fScore = gScore + hScore;
+
+                if (pathCrossesRestrictedArea(current.position, neighbour, restrictedAreas)) {
+                    continue;
+                }
+
+                double gScore = current.gScore + 1;
+
+                if (bestGScore.containsKey(neighbourKey)) {
+                    continue;
+                }
+
+                double neighbourDistToGoal = calculationService.calculateDistanceTo(neighbour, goal);
+
+                newPositions++;
+
+                bestGScore.put(neighbourKey, gScore);
+                double fScore = gScore + neighbourDistToGoal;
 
                 Node neighbourNode = new Node(neighbour, gScore, fScore, current);
                 openSet.add(neighbourNode);
@@ -91,6 +121,31 @@ public class PathFindingService {
         }
         Collections.reverse(path);
         return path;
+    }
+
+    private boolean pathCrossesRestrictedArea(LngLat from, LngLat to, RestrictedAreaDTO[] restrictedAreas) {
+        for (RestrictedAreaDTO area : restrictedAreas) {
+            if (calculationService.inRegion(from, area.vertices) || calculationService.inRegion(to, area.vertices)) { // check if points are in restricted area
+                return true;
+            }
+            for (int i = 0; i < area.vertices.length - 1; i++) {
+                if (calculationService.linesIntersect(from, to, area.vertices[i], area.vertices[i + 1])) {
+                    return true;
+                }
+            }
+            if (calculationService.linesIntersect(from, to, area.vertices[area.vertices.length - 1], area.vertices[0])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<LngLat> findPathForSingleDelivery(LngLat droneServicePoint, MedDispatchRecDTO dispatchRequest, RestrictedAreaDTO[] restrictedAreas){
+        //droneServicePoint = start coordinate
+        //dispatchRequest.delivery = end goal
+        List<LngLat> pathToDestination = findPath(droneServicePoint, dispatchRequest.delivery, restrictedAreas);
+        pathToDestination.add(dispatchRequest.delivery); // hover
+        return pathToDestination;
     }
 
 }

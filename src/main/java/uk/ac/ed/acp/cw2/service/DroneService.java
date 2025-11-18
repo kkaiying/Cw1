@@ -30,7 +30,7 @@ public class DroneService {
         this.ilpRestService = ilpRestService;
     }
 
-    private DroneDTO[] getAllDronesFromDatabase() {
+    public DroneDTO[] getAllDronesFromDatabase() {
         return ilpRestService.getAllDrones();
     }
 
@@ -39,7 +39,7 @@ public class DroneService {
         return Arrays.stream(droneDTOs).map(DtoMapper::toDataClass).collect(Collectors.toList());
     }
 
-    private DronesForServicePointsDTO[] getDronesForServicePointsFromDB() {
+    public DronesForServicePointsDTO[] getDronesForServicePointsFromDB() {
         return ilpRestService.getDronesForServicePoints();
     }
 
@@ -85,7 +85,7 @@ public class DroneService {
         return false;
     }
 
-    private boolean isAvailableAtTime(String droneId, LocalDate date, LocalTime time) {
+    public boolean isAvailableAtTime(String droneId, LocalDate date, LocalTime time) {
         DronesForServicePointsDTO[] dronesAvailability = getDronesForServicePointsFromDB();
         DayOfWeek requestedDay = date.getDayOfWeek();
         boolean result = Arrays.stream(dronesAvailability)

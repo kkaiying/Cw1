@@ -30,7 +30,7 @@ public class DroneController {
     }
 
     @PostMapping("/queryAvailableDrones")
-    public List<String> queryAvailableDrones(@Valid @RequestBody List<MedDispatchRecDTO> dtos) {
+    public List<String> queryAvailableDrones(@Valid @RequestBody List<MedDispatchRecDTO> dtos) { //NOTE THIS IS INCOMPLETE!! MAXCOST CHECK IS WRONG
         return droneService.getAvailableDrones(dtos);
     }
 
