@@ -4,11 +4,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import uk.ac.ed.acp.cw2.data.Drone;
+import uk.ac.ed.acp.cw2.data.LngLat;
 import uk.ac.ed.acp.cw2.data.MedDispatchRec;
-import uk.ac.ed.acp.cw2.dto.DroneDTO;
-import uk.ac.ed.acp.cw2.dto.DronesForServicePointsDTO;
-import uk.ac.ed.acp.cw2.dto.MedDispatchRecDTO;
-import uk.ac.ed.acp.cw2.dto.QueryDTO;
+import uk.ac.ed.acp.cw2.dto.*;
 import uk.ac.ed.acp.cw2.mapper.DtoMapper;
 
 import java.time.DayOfWeek;
@@ -25,9 +23,12 @@ import java.util.stream.Collectors;
 public class DroneService {
 
     private final ILPRestService ilpRestService;
+    private final CalculationService calculationService;
+    private static final double DISTANCE_TOLERANCE = 0.00015;
 
-    public DroneService(ILPRestService ilpRestService) {
+    public DroneService(ILPRestService ilpRestService, CalculationService calculationService) {
         this.ilpRestService = ilpRestService;
+        this.calculationService = calculationService;
     }
 
     public DroneDTO[] getAllDronesFromDatabase() {
@@ -41,6 +42,46 @@ public class DroneService {
 
     public DronesForServicePointsDTO[] getDronesForServicePointsFromDB() {
         return ilpRestService.getDronesForServicePoints();
+    }
+
+    private LngLat getServicePointForDrone(String droneId) {
+        DronesForServicePointsDTO[] allServicePoints = getDronesForServicePointsFromDB();
+        for (DronesForServicePointsDTO servicePoint : allServicePoints) {
+            for (DronesAvailabilityDTO drone : servicePoint.drones) {
+                if (drone.id.equals(droneId)) {
+                    int servicePointId = servicePoint.servicePointId;
+                    return getServicePointLocationById(servicePointId);
+                }
+            }
+        }
+        return null;
+    }
+
+    private LngLat getServicePointLocationById(int id) {
+        ServicePointDTO[] servicePoints = ilpRestService.getServicePoint();
+        for (ServicePointDTO servicePoint : servicePoints) {
+            if (servicePoint.id == id) {
+                return servicePoint.location;
+            }
+        }
+        return null;
+    }
+
+    public DroneDTO[] getDronesFromAServicePoint(ServicePointDTO servicePoint) {
+        DronesForServicePointsDTO[] droneForServicePointData = getDronesForServicePointsFromDB();
+        for (DronesForServicePointsDTO droneForServicePoint : droneForServicePointData) {
+            if (droneForServicePoint.servicePointId == servicePoint.id ) {
+                DronesAvailabilityDTO[] dronesAtTheServicePoint = droneForServicePoint.drones;
+                DroneDTO[] allDrones = new DroneDTO[dronesAtTheServicePoint.length];
+
+                for (int i = 0; i < dronesAtTheServicePoint.length; i++) {
+                    String droneId = dronesAtTheServicePoint[i].id;
+                    allDrones[i] = getDroneDetails(droneId);
+                }
+                return allDrones;
+            }
+        }
+        return new DroneDTO[0]; // no drones at the service point
     }
 
     public List<String> getDronesWithCooling(boolean hasCooling) {
@@ -60,17 +101,34 @@ public class DroneService {
     }
 
     private boolean canHandleAllDeliveries(Drone drone, List<MedDispatchRecDTO> dtos) {
-        double totalCost = 0;
+        int numOfDispatches = dtos.size();
+        LngLat servicePointLocation = getServicePointForDrone(drone.getId());
+
+        // estimate total moves for drone's full trip
+        int estimatedTotalMoves = 0;
+        LngLat currentPos = servicePointLocation;
+
+        for (MedDispatchRecDTO dto : dtos) {
+            double distance = calculationService.calculateDistanceTo(currentPos, dto.delivery);
+            estimatedTotalMoves += (int) Math.ceil(distance / DISTANCE_TOLERANCE);
+            currentPos = dto.delivery;
+        }
+
+        // add return trip
+        double returnDistance = calculationService.calculateDistanceTo(currentPos, servicePointLocation);
+        estimatedTotalMoves += (int) Math.ceil(returnDistance / DISTANCE_TOLERANCE);
+
+        // calc total trip costs
+        double totalCosts = drone.getCostInitial() + drone.getCostFinal() + (estimatedTotalMoves * drone.getCostPerMove());
+        double costPerDispatch = totalCosts / numOfDispatches;
+
         for (MedDispatchRecDTO dto : dtos) {
             if (!meetsRequirements(drone, dto)) {
                 return false; // once a single drone fails to meet a single requirement, immediately return false
             }
-            if (dto.requirements.maxCost != null) {
-                totalCost += dto.requirements.maxCost;
+            if (dto.requirements.maxCost != null && costPerDispatch > dto.requirements.maxCost) {
+                return false;
             }
-        }
-        if (drone.calculateMaxCost() < totalCost) {
-            return false;
         }
         return true;
     }

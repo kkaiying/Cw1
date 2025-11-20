@@ -6,6 +6,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.ac.ed.acp.cw2.dto.DroneDTO;
 import uk.ac.ed.acp.cw2.dto.DronesForServicePointsDTO;
 import uk.ac.ed.acp.cw2.dto.RestrictedAreaDTO;
+import uk.ac.ed.acp.cw2.dto.ServicePointDTO;
 
 @Service
 public class ILPRestService {
@@ -34,5 +35,8 @@ public class ILPRestService {
         return restTemplate.getForObject(url, RestrictedAreaDTO[].class);
     }
 
-    public
+    public ServicePointDTO[] getServicePoint() {
+        String url = ilpBaseUrl + "/service-points";
+        return restTemplate.getForObject(url, ServicePointDTO[].class);
+    }
 }
