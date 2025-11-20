@@ -101,8 +101,11 @@ public class DroneService {
     }
 
     private boolean canHandleAllDeliveries(Drone drone, List<MedDispatchRecDTO> dtos) {
+        System.out.println("Checking drone: " + drone.getId()); //remove
+
         int numOfDispatches = dtos.size();
         LngLat servicePointLocation = getServicePointForDrone(drone.getId());
+        System.out.println("  Service point: " + servicePointLocation); //remove
 
         // estimate total moves for drone's full trip
         int estimatedTotalMoves = 0;
@@ -110,34 +113,52 @@ public class DroneService {
 
         for (MedDispatchRecDTO dto : dtos) {
             double distance = calculationService.calculateDistanceTo(currentPos, dto.delivery);
-            estimatedTotalMoves += (int) Math.ceil(distance / DISTANCE_TOLERANCE);
+            int moves = (int) Math.ceil(distance / DISTANCE_TOLERANCE);
+            estimatedTotalMoves += moves;
+            System.out.println("  Dispatch " + dto.id + ": " + moves + " moves"); //rem
             currentPos = dto.delivery;
         }
 
         // add return trip
         double returnDistance = calculationService.calculateDistanceTo(currentPos, servicePointLocation);
-        estimatedTotalMoves += (int) Math.ceil(returnDistance / DISTANCE_TOLERANCE);
+        int returnMoves = (int) Math.ceil(returnDistance / DISTANCE_TOLERANCE);
+        System.out.println("  Return: " + returnMoves + " moves"); //rem
+        estimatedTotalMoves += returnMoves;
 
         // calc total trip costs
         double totalCosts = drone.getCostInitial() + drone.getCostFinal() + (estimatedTotalMoves * drone.getCostPerMove());
         double costPerDispatch = totalCosts / numOfDispatches;
+        System.out.println("  Total moves: " + estimatedTotalMoves);
+        System.out.println("  Total cost: " + totalCosts);
+        System.out.println("  Cost per dispatch: " + costPerDispatch); //rem
 
         for (MedDispatchRecDTO dto : dtos) {
             if (!meetsRequirements(drone, dto)) {
+                System.out.println("  ❌ Failed meetsRequirements for dispatch " + dto.id); //rem
                 return false; // once a single drone fails to meet a single requirement, immediately return false
             }
             if (dto.requirements.maxCost != null && costPerDispatch > dto.requirements.maxCost) {
+                System.out.println("  ❌ Cost " + costPerDispatch + " exceeds maxCost " + dto.requirements.maxCost); //rem
                 return false;
             }
         }
+        System.out.println("  ✅ PASSED"); //rem
         return true;
     }
 
     private boolean meetsRequirements(Drone drone, MedDispatchRecDTO dto) {
+
+        //rem
+        System.out.println("    meetsRequirements check:");
+        System.out.println("      Available: " + isAvailableAtTime(drone.getId(), dto.date, dto.time));
+        System.out.println("      Capacity: " + drone.getCapacity() + " >= " + dto.requirements.capacity);
+        System.out.println("      Cooling: drone=" + drone.isHasCooling() + ", required=" + dto.requirements.cooling);
+        System.out.println("      Heating: drone=" + drone.isHasHeating() + ", required=" + dto.requirements.heating);
+
         if (isAvailableAtTime(drone.getId(), dto.date, dto.time)
         && drone.getCapacity() >= dto.requirements.capacity
-        && (dto.requirements.cooling == null || drone.isHasCooling() == dto.requirements.cooling)
-        && (dto.requirements.heating == null || drone.isHasHeating() == dto.requirements.heating)) {
+        && (dto.requirements.cooling == null || !dto.requirements.cooling || drone.isHasCooling())
+        && (dto.requirements.heating == null || !dto.requirements.heating || drone.isHasHeating())) {
             return true;
         }
         return false;
