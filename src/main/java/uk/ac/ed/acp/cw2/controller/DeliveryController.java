@@ -39,4 +39,9 @@ public class DeliveryController {
     public DeliveryPathResponseDTO calcDeliveryPath(@Valid @RequestBody List<MedDispatchRecDTO> dispatches) {
         return deliveryService.getCalcDeliveryPath(dispatches);
     }
+
+    @PostMapping("/calcDeliveryPathAsGeoJson")
+    public String calcDeliveryPathAsGeoJson(@Valid @RequestBody List<MedDispatchRecDTO> dispatches) {
+        return deliveryService.getCalcDeliveryPathAsGeoJson(dispatches);
+    }
 }

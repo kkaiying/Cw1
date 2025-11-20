@@ -44,21 +44,19 @@ public class DroneService {
         return ilpRestService.getDronesForServicePoints();
     }
 
-    private LngLat getServicePointForDrone(String droneId) {
-        DronesForServicePointsDTO[] allServicePoints = getDronesForServicePointsFromDB();
-        for (DronesForServicePointsDTO servicePoint : allServicePoints) {
+    private LngLat getServicePointForDrone(String droneId, DronesForServicePointsDTO[] servicePointData, ServicePointDTO[] servicePoints) {
+        for (DronesForServicePointsDTO servicePoint : servicePointData) {
             for (DronesAvailabilityDTO drone : servicePoint.drones) {
                 if (drone.id.equals(droneId)) {
                     int servicePointId = servicePoint.servicePointId;
-                    return getServicePointLocationById(servicePointId);
+                    return getServicePointLocationById(servicePointId, servicePoints);
                 }
             }
         }
         return null;
     }
 
-    private LngLat getServicePointLocationById(int id) {
-        ServicePointDTO[] servicePoints = ilpRestService.getServicePoint();
+    private LngLat getServicePointLocationById(int id, ServicePointDTO[] servicePoints) {
         for (ServicePointDTO servicePoint : servicePoints) {
             if (servicePoint.id == id) {
                 return servicePoint.location;
@@ -97,14 +95,17 @@ public class DroneService {
     }
 
     public List<String> getAvailableDrones(List<MedDispatchRecDTO> dtos) {
-        return filterDroneByAttribute(drone -> canHandleAllDeliveries(drone, dtos))   ;
+        DronesForServicePointsDTO[] servicePointData = getDronesForServicePointsFromDB();
+        ServicePointDTO[] servicePoints = ilpRestService.getServicePoint();
+
+        return filterDroneByAttribute(drone -> canHandleAllDeliveries(drone, dtos, servicePointData, servicePoints))   ;
     }
 
-    private boolean canHandleAllDeliveries(Drone drone, List<MedDispatchRecDTO> dtos) {
+    private boolean canHandleAllDeliveries(Drone drone, List<MedDispatchRecDTO> dtos, DronesForServicePointsDTO[] servicePointData, ServicePointDTO[] servicePoints) {
         System.out.println("Checking drone: " + drone.getId()); //remove
 
         int numOfDispatches = dtos.size();
-        LngLat servicePointLocation = getServicePointForDrone(drone.getId());
+        LngLat servicePointLocation = getServicePointForDrone(drone.getId(), servicePointData, servicePoints);
         System.out.println("  Service point: " + servicePointLocation); //remove
 
         // estimate total moves for drone's full trip
@@ -133,29 +134,26 @@ public class DroneService {
         System.out.println("  Cost per dispatch: " + costPerDispatch); //rem
 
         for (MedDispatchRecDTO dto : dtos) {
-            if (!meetsRequirements(drone, dto)) {
-                System.out.println("  ❌ Failed meetsRequirements for dispatch " + dto.id); //rem
+            if (!meetsRequirements(drone, dto, servicePointData)) {
                 return false; // once a single drone fails to meet a single requirement, immediately return false
             }
             if (dto.requirements.maxCost != null && costPerDispatch > dto.requirements.maxCost) {
-                System.out.println("  ❌ Cost " + costPerDispatch + " exceeds maxCost " + dto.requirements.maxCost); //rem
                 return false;
             }
         }
-        System.out.println("  ✅ PASSED"); //rem
         return true;
     }
 
-    private boolean meetsRequirements(Drone drone, MedDispatchRecDTO dto) {
+    private boolean meetsRequirements(Drone drone, MedDispatchRecDTO dto, DronesForServicePointsDTO[] servicePointData) {
 
         //rem
         System.out.println("    meetsRequirements check:");
-        System.out.println("      Available: " + isAvailableAtTime(drone.getId(), dto.date, dto.time));
+        //System.out.println("      Available: " + isAvailableAtTime(drone.getId(), dto.date, dto.time));
         System.out.println("      Capacity: " + drone.getCapacity() + " >= " + dto.requirements.capacity);
         System.out.println("      Cooling: drone=" + drone.isHasCooling() + ", required=" + dto.requirements.cooling);
         System.out.println("      Heating: drone=" + drone.isHasHeating() + ", required=" + dto.requirements.heating);
 
-        if (isAvailableAtTime(drone.getId(), dto.date, dto.time)
+        if (isAvailableAtTime(drone.getId(), dto.date, dto.time, servicePointData)
         && drone.getCapacity() >= dto.requirements.capacity
         && (dto.requirements.cooling == null || !dto.requirements.cooling || drone.isHasCooling())
         && (dto.requirements.heating == null || !dto.requirements.heating || drone.isHasHeating())) {
@@ -164,8 +162,7 @@ public class DroneService {
         return false;
     }
 
-    public boolean isAvailableAtTime(String droneId, LocalDate date, LocalTime time) {
-        DronesForServicePointsDTO[] dronesAvailability = getDronesForServicePointsFromDB();
+    public boolean isAvailableAtTime(String droneId, LocalDate date, LocalTime time, DronesForServicePointsDTO[] dronesAvailability) {
         DayOfWeek requestedDay = date.getDayOfWeek();
         boolean result = Arrays.stream(dronesAvailability)
                 .flatMap(servicePoint -> Arrays.stream(servicePoint.drones)) //flatten to 'drones' level

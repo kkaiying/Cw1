@@ -20,30 +20,36 @@ public class DeliveryService {
         this.calculationService = calculationService;
     }
 
-    private boolean canHandleDispatch(DroneDTO drone, MedDispatchRecDTO dispatch) {
+    private boolean canHandleDispatch(DroneDTO drone, MedDispatchRecDTO dispatch, DronesForServicePointsDTO[] dronesAvailability) {
+        System.out.println("      canHandleDispatch: drone " + drone.id + ", dispatch " + dispatch.id); //rem
         if (drone.capability.capacity < dispatch.requirements.capacity) {
+            System.out.println("      ❌ Capacity: " + drone.capability.capacity + " < " + dispatch.requirements.capacity);
             return false;
         }
         if (dispatch.requirements.cooling != null && dispatch.requirements.cooling == true && drone.capability.cooling == false) {
+            System.out.println("      ❌ Cooling required but drone doesn't have it");
             return false; // only reject when a dispatch specifically requires cooling but the drone doesnt have cooling
         }
         if (dispatch.requirements.heating != null && dispatch.requirements.heating == true && drone.capability.heating == false) {
+            System.out.println("      ❌ Heating required but drone doesn't have it");
             return false;
         }
-        if (!droneService.isAvailableAtTime(drone.id, dispatch.date, dispatch.time)) {
+        if (!droneService.isAvailableAtTime(drone.id, dispatch.date, dispatch.time, dronesAvailability)) {
+            System.out.println("      ❌ Not available at " + dispatch.date + " " + dispatch.time);
             return false;
         }
+        System.out.println("      ✅ Passed canHandleDispatch");
         return true;
     }
 
-    public Map<DroneDTO, List<MedDispatchRecDTO>> assignDronesToDispatch(List<MedDispatchRecDTO> dispatches) {
+    public Map<DroneDTO, List<MedDispatchRecDTO>> assignDronesToDispatch(List<MedDispatchRecDTO> dispatches,
+                                                                         DronesForServicePointsDTO[] dronesAvailability, ServicePointDTO[] servicePoints) {
         Map<DroneDTO, List<MedDispatchRecDTO>> droneAssignments = new HashMap<>();
-        ServicePointDTO[] servicePoints = iLPRestService.getServicePoint();
 
         for (MedDispatchRecDTO dispatch : dispatches) {
             boolean assigned = false;
 
-            List<Map.Entry<ServicePointDTO, Double>> servicePointsByDistance = getServicePointsByDistanceToDispatch(dispatch);
+            List<Map.Entry<ServicePointDTO, Double>> servicePointsByDistance = getServicePointsByDistanceToDispatch(dispatch, servicePoints);
 
             // assign a drone to the current dispatch. prioritses drones located in service points nearest to the dispatch
             for (Map.Entry<ServicePointDTO, Double> servicePoint : servicePointsByDistance) {
@@ -54,20 +60,12 @@ public class DeliveryService {
                     DroneDTO existingDrone = findDroneInMap(droneAssignments, droneAtServicePoint.id); // check if current drone is already in assignments
 
                     if (existingDrone == null) {
-                        if (canHandleDispatch(droneAtServicePoint, dispatch)) {
+                        if (canHandleDispatch(droneAtServicePoint, dispatch, dronesAvailability)) {
                             droneAssignments.put(droneAtServicePoint, new ArrayList<>(List.of(dispatch)));
                             assigned = true;
                             break;
                         }
                     }
-
-//                    // og ========
-//                    if (!droneAssignments.containsKey(droneAtServicePoint) && canHandleDispatch(droneAtServicePoint, dispatch)) { // only accept if drone is unassigned + can handle dispatch
-//                        droneAssignments.put(droneAtServicePoint, new ArrayList<>(List.of(dispatch)));
-//                        assigned = true; // current dispatch successfully assigned to a previously unassigned drone
-//                        break;
-//                    }
-//                    //==============
 
                 }
                 // move on to next dispatch if current dispatch is assigned
@@ -79,20 +77,19 @@ public class DeliveryService {
                 for (DroneDTO droneAtServicePoint : dronesAtServicePoint) {
                     DroneDTO existingDrone = findDroneInMap(droneAssignments, droneAtServicePoint.id);
 
+                    System.out.println("Checking drone " + droneAtServicePoint.id + " for dispatch " + dispatch.id); //remove
+
                     if (existingDrone != null) {
-                        if (canHandleAnotherDispatch(existingDrone, dispatch, droneAssignments.get(existingDrone))) {
+                        System.out.println("  Drone " + existingDrone.id + " is already assigned"); //rem
+                        if (canHandleAnotherDispatch(existingDrone, dispatch, droneAssignments.get(existingDrone), dronesAvailability)) {
+                            System.out.println("  ✅ CAN handle another dispatch!"); //rem
                             droneAssignments.get(existingDrone).add(dispatch);
                             assigned = true;
                             break;
+                        } else { //rem
+                            System.out.println("  ❌ CANNOT handle another dispatch");
                         }
                     }
-
-//                    if (droneAssignments.containsKey(droneAtServicePoint) &&
-//                            canHandleAnotherDispatch(droneAtServicePoint, dispatch, droneAssignments.get(droneAtServicePoint))) {
-//                        droneAssignments.get(droneAtServicePoint).add(dispatch);
-//                        assigned = true;
-//                        break;
-//                    }
                 }
                 if (assigned) {
                     break;
@@ -113,7 +110,8 @@ public class DeliveryService {
 
     //
     public void reassignDrones(DroneDTO droneThatFailed, Map<DroneDTO, List<MedDispatchRecDTO>> droneAssignments,
-                               Map<DroneDTO, List<List<LngLat>>> allPaths, RestrictedAreaDTO[] restrictedAreas) {
+                               Map<DroneDTO, List<List<LngLat>>> allPaths, RestrictedAreaDTO[] restrictedAreas,
+                               DronesForServicePointsDTO[] dronesAvailability, ServicePointDTO[] servicePoints) {
 
         // remove dispatches one by one and check path and calc moves.
         List<MedDispatchRecDTO> assignedDispatches = droneAssignments.get(droneThatFailed);
@@ -125,7 +123,7 @@ public class DeliveryService {
                 droneAssignments.remove(droneThatFailed);
                 allPaths.remove(droneThatFailed);
             } else {
-                List<List<LngLat>> newPath = getPathForSingleDrone(droneThatFailed, droneAssignments.get(droneThatFailed), restrictedAreas);
+                List<List<LngLat>> newPath = getPathForSingleDrone(droneThatFailed, droneAssignments.get(droneThatFailed), restrictedAreas, dronesAvailability, servicePoints);
                 allPaths.put(droneThatFailed, newPath);
             }
 
@@ -133,7 +131,7 @@ public class DeliveryService {
 //            Map<DroneDTO, List<MedDispatchRecDTO>> newAssignment = assignDronesToDispatch(List.of(dispatchToReassign));
             boolean reassigned = false;
             DroneDTO newlyAssignedDrone = null;
-            List<Map.Entry<ServicePointDTO, Double>> servicePointsByDistance = getServicePointsByDistanceToDispatch(dispatchToReassign);
+            List<Map.Entry<ServicePointDTO, Double>> servicePointsByDistance = getServicePointsByDistanceToDispatch(dispatchToReassign, servicePoints);
 
             // try unassigned drones
             for (Map.Entry<ServicePointDTO, Double> servicePoint : servicePointsByDistance) {
@@ -144,7 +142,7 @@ public class DeliveryService {
                     if (drone.equals(droneThatFailed)) {
                         continue;
                     }
-                    if (!droneAssignments.containsKey(drone) && canHandleDispatch(drone, dispatchToReassign)) {
+                    if (!droneAssignments.containsKey(drone) && canHandleDispatch(drone, dispatchToReassign, dronesAvailability)) {
                         droneAssignments.put(drone, new ArrayList<>(List.of(dispatchToReassign)));
                         newlyAssignedDrone = drone;
                         reassigned = true;
@@ -158,7 +156,7 @@ public class DeliveryService {
                     if (drone.equals(droneThatFailed)) {
                         continue; // skip the failed drone
                     }
-                    if (droneAssignments.containsKey(drone) && canHandleAnotherDispatch(drone, dispatchToReassign, droneAssignments.get(drone))) {
+                    if (droneAssignments.containsKey(drone) && canHandleAnotherDispatch(drone, dispatchToReassign, droneAssignments.get(drone), dronesAvailability)) {
                         droneAssignments.get(drone).add(dispatchToReassign);
                         newlyAssignedDrone = drone;
                         reassigned = true;
@@ -169,14 +167,13 @@ public class DeliveryService {
             }
 
             if (reassigned && newlyAssignedDrone != null) {
-                List<List<LngLat>> newPath = getPathForSingleDrone(newlyAssignedDrone, droneAssignments.get(newlyAssignedDrone), restrictedAreas);
+                List<List<LngLat>> newPath = getPathForSingleDrone(newlyAssignedDrone, droneAssignments.get(newlyAssignedDrone), restrictedAreas, dronesAvailability, servicePoints);
                 allPaths.put(newlyAssignedDrone, newPath);
             }
         }
     }
 
-    private List<Map.Entry<ServicePointDTO, Double>> getServicePointsByDistanceToDispatch(MedDispatchRecDTO dispatch) {
-        ServicePointDTO[] servicePoints = iLPRestService.getServicePoint();
+    private List<Map.Entry<ServicePointDTO, Double>> getServicePointsByDistanceToDispatch(MedDispatchRecDTO dispatch, ServicePointDTO[] servicePoints) {
         List<Map.Entry<ServicePointDTO, Double>> servicePointsByDistance = new ArrayList<>();
 
         for (ServicePointDTO servicePoint : servicePoints) {
@@ -187,8 +184,10 @@ public class DeliveryService {
         return servicePointsByDistance;
     }
 
-    private boolean canHandleAnotherDispatch(DroneDTO drone, MedDispatchRecDTO newDispatch, List<MedDispatchRecDTO> assignedDispatches) {
-        if (!canHandleDispatch(drone, newDispatch)) {
+    private boolean canHandleAnotherDispatch(DroneDTO drone, MedDispatchRecDTO newDispatch, List<MedDispatchRecDTO> assignedDispatches, DronesForServicePointsDTO[] dronesAvailability) {
+        System.out.println("    canHandleAnotherDispatch for drone " + drone.id + " and dispatch " + newDispatch.id); //rem
+        if (!canHandleDispatch(drone, newDispatch, dronesAvailability)) {
+            System.out.println("    ❌ Failed canHandleDispatch"); //rem
             return false;
         }
 
@@ -196,21 +195,26 @@ public class DeliveryService {
         for (MedDispatchRecDTO assignedDispatch : assignedDispatches) {
             capacity += assignedDispatch.requirements.capacity;
         }
+        System.out.println("    Total capacity needed: " + capacity + ", Drone capacity: " + drone.capability.capacity); //rem
 
         if (drone.capability.capacity < capacity) {
+            System.out.println("    ❌ Exceeds capacity");
             return false;
         }
+        System.out.println("    ✅ Passed all checks");
         return true;
     }
 
-    public Map<DroneDTO, List<List<LngLat>>> getPathForDrones(Map<DroneDTO, List<MedDispatchRecDTO>> droneAssignments, RestrictedAreaDTO[] restrictedAreas) {
+    public Map<DroneDTO, List<List<LngLat>>> getPathForDrones(Map<DroneDTO, List<MedDispatchRecDTO>> droneAssignments,
+                                                              RestrictedAreaDTO[] restrictedAreas, DronesForServicePointsDTO[] dronesAvailability,
+                                                              ServicePointDTO[] servicePoints) {
         Map<DroneDTO, List<List<LngLat>>> dronePaths = new HashMap<>();
 
         for (DroneDTO drone : droneAssignments.keySet()) {
             List<MedDispatchRecDTO> assignedDispatches = droneAssignments.get(drone);
             List<List<LngLat>> fullPath = new ArrayList<>();
 
-            LngLat servicePoint = getServicePoint(drone.id);
+            LngLat servicePoint = getServicePoint(drone.id, dronesAvailability, servicePoints);
             LngLat currentPos = servicePoint;
 
             for (MedDispatchRecDTO assignedDispatch : assignedDispatches) {
@@ -232,10 +236,11 @@ public class DeliveryService {
         return dronePaths;
     }
 
-    public List<List<LngLat>> getPathForSingleDrone(DroneDTO drone, List<MedDispatchRecDTO> dispatches, RestrictedAreaDTO[] restrictedAreas) {
+    public List<List<LngLat>> getPathForSingleDrone(DroneDTO drone, List<MedDispatchRecDTO> dispatches, RestrictedAreaDTO[] restrictedAreas,
+                                                    DronesForServicePointsDTO[] dronesAvailability, ServicePointDTO[] servicePoints) {
         List<List<LngLat>> fullPath = new ArrayList<>();
 
-        LngLat servicePoint = getServicePoint(drone.id);
+        LngLat servicePoint = getServicePoint(drone.id, dronesAvailability, servicePoints);
         LngLat currentPos = servicePoint;
 
         for (MedDispatchRecDTO dispatch : dispatches) {
@@ -255,14 +260,13 @@ public class DeliveryService {
         return fullPath;
     }
 
-    private LngLat getServicePoint(String droneId) {
-        DronesForServicePointsDTO[] allDroneServicePoints = droneService.getDronesForServicePointsFromDB();
+    private LngLat getServicePoint(String droneId, DronesForServicePointsDTO[] dronesAvailability, ServicePointDTO[] servicePoints) {
 
-        for (DronesForServicePointsDTO servicePoint : allDroneServicePoints) {
+        for (DronesForServicePointsDTO servicePoint : dronesAvailability) {
             for (DronesAvailabilityDTO drone : servicePoint.drones) {
                 if (drone.id.equals(droneId)) {
                     int servicePointId = servicePoint.servicePointId;
-                    LngLat servicePointPos = getServicePointLocationById(servicePointId);
+                    LngLat servicePointPos = getServicePointLocationById(servicePointId, servicePoints);
                     return servicePointPos;
                 }
             }
@@ -270,9 +274,7 @@ public class DeliveryService {
         return null;
     }
 
-    private LngLat getServicePointLocationById(int id) {
-        ServicePointDTO[] servicePoints = iLPRestService.getServicePoint();
-
+    private LngLat getServicePointLocationById(int id, ServicePointDTO[] servicePoints) {
         for (ServicePointDTO servicePoint : servicePoints) {
             if (servicePoint.id == id) {
                 return servicePoint.location;
@@ -297,8 +299,10 @@ public class DeliveryService {
 
     public DeliveryPathResponseDTO getCalcDeliveryPath(List<MedDispatchRecDTO> dispatchRequests) { // set void temporarily
         RestrictedAreaDTO[] restrictedAreas = iLPRestService.getRestrictedAreas();
+        DronesForServicePointsDTO[] dronesAvailability = iLPRestService.getDronesForServicePoints();
+        ServicePointDTO[] servicePoints = iLPRestService.getServicePoint();
 
-        Map<DroneDTO, List<MedDispatchRecDTO>> droneAssignments = assignDronesToDispatch(dispatchRequests);
+        Map<DroneDTO, List<MedDispatchRecDTO>> droneAssignments = assignDronesToDispatch(dispatchRequests, dronesAvailability, servicePoints);
 
         // REMOVE
         System.out.println("=== INITIAL DRONE ASSIGNMENTS ===");
@@ -312,19 +316,18 @@ public class DeliveryService {
         System.out.println("=========================");
         // REMOVE
 
-        Map<DroneDTO, List<List<LngLat>>> allPaths = getPathForDrones(droneAssignments, restrictedAreas);
+        Map<DroneDTO, List<List<LngLat>>> allPaths = getPathForDrones(droneAssignments, restrictedAreas, dronesAvailability, servicePoints);
 
         List<DroneDTO> dronesToCheck = new ArrayList<>(droneAssignments.keySet());
 
         // check that each drone doesnt run out of moves
         for (DroneDTO drone : dronesToCheck) {
             if (droneAssignments.containsKey(drone) && !droneDoesNotFall(drone, allPaths)) { // drone does fall
-                System.out.println("⚠️ Drone " + drone.id + " EXCEEDS maxMoves! Reassigning..."); // remove
-                reassignDrones(drone, droneAssignments, allPaths, restrictedAreas);
+                reassignDrones(drone, droneAssignments, allPaths, restrictedAreas, dronesAvailability, servicePoints);
             }
         }
 
-        // REMOVE ######
+        // REMOVE DEBUG LTR ######
         System.out.println("\n=== FINAL DRONE ASSIGNMENTS (after reassignment) ===");
         for (DroneDTO drone : droneAssignments.keySet()) {
             List<MedDispatchRecDTO> dispatches = droneAssignments.get(drone);
@@ -395,6 +398,96 @@ public class DeliveryService {
         response.totalMoves = totalMoves;
 
         return response;
+    }
+
+    public String getCalcDeliveryPathAsGeoJson(List<MedDispatchRecDTO> dispatch) {
+        RestrictedAreaDTO[] restrictedArea = iLPRestService.getRestrictedAreas();
+        DronesForServicePointsDTO[] dronesAvailability = iLPRestService.getDronesForServicePoints();
+        ServicePointDTO[] servicePoints = iLPRestService.getServicePoint();
+
+        List <DroneDTO> capableDrones = findCapableDrones(dispatch, dronesAvailability);
+
+        // try each capable drone until one successfully makes all dispatches without exceeding maxMoves constraint
+        for (DroneDTO drone : capableDrones) {
+            System.out.println("TRYING CAPABLE DRONE " + drone.id);
+            LngLat servicePointLoc = getServicePoint(drone.id, dronesAvailability, servicePoints); // get service point location for current drone
+            List<List<LngLat>> allTrips = buildTripsForSingleDrone(drone, dispatch, servicePointLoc, restrictedArea);
+
+            // check that each individual trip doesnt exceed max moves
+            boolean allTripsValid = true;
+            for (List<LngLat> trip : allTrips) {
+                if (trip.size() > drone.capability.maxMoves) {
+                    allTripsValid = false;
+                    System.out.println("Trip exceeds max moves !!!");
+                    break;
+                }
+            }
+
+            if (allTripsValid) {
+                return convertToGeoJson(allTrips);
+            }
+        }
+        System.out.println("no capable drones....");
+        return null; // no drone can handle
+    }
+
+    private List<DroneDTO> findCapableDrones(List<MedDispatchRecDTO> dispatches, DronesForServicePointsDTO[] dronesAvailability) {
+        DroneDTO[] allDrones = droneService.getAllDronesFromDatabase();
+        List<DroneDTO> capableDrones = new ArrayList<>();
+
+        for (DroneDTO drone : allDrones) {
+            boolean canHandleAll = true;
+            for (MedDispatchRecDTO dispatch : dispatches) {
+                if (!canHandleDispatch(drone, dispatch, dronesAvailability)) {
+                    canHandleAll = false;
+                    break;
+                }
+            }
+            if (canHandleAll) {
+                capableDrones.add(drone);
+            }
+        }
+        return capableDrones;
+    }
+
+    public List<List<LngLat>> buildTripsForSingleDrone(DroneDTO drone, List<MedDispatchRecDTO> dispatches, LngLat servicePointLoc, RestrictedAreaDTO[] restrictedArea) {
+        List<List<LngLat>> allTrips = new ArrayList<>();
+
+        // each iteration is a trip for a single dispatch (to and back)
+        for (MedDispatchRecDTO dispatch : dispatches) {
+            List<LngLat> trip = new ArrayList<>();
+
+            // to dispatch location
+            List<LngLat> toDispatch = pathFindingService.findPath(servicePointLoc, dispatch.delivery, restrictedArea);
+            trip.addAll(toDispatch);
+            LngLat lastPos = toDispatch.get(toDispatch.size() - 1); // hover coordinate
+            trip.add(lastPos); // add hover
+
+            // return to service point
+            List<LngLat> returnTrip = pathFindingService.findPath(lastPos, servicePointLoc, restrictedArea);
+            trip.addAll(returnTrip);
+            LngLat finalPos = returnTrip.get(returnTrip.size() - 1);
+            trip.add(finalPos);
+
+            allTrips.add(trip);
+        }
+        return allTrips;
+    }
+
+    private String convertToGeoJson(List<List<LngLat>> allTrips) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"type\":\"LineString\",\"coordinates\":[");
+
+        boolean first = true;
+        for (List<LngLat> trip : allTrips) {
+            for (LngLat point : trip) {
+                if (!first) sb.append(",");
+                sb.append("[").append(point.lng).append(",").append(point.lat).append("]");
+                first = false;
+            }
+        }
+        sb.append("]}");
+        return sb.toString();
     }
 
 }
