@@ -419,10 +419,10 @@ public class DeliveryService {
             }
 
             // add the return trip to the service point
-            DeliveriesDTO returnTrip = new DeliveriesDTO();
-            returnTrip.deliveryId = null;
-            returnTrip.flightPath = paths.get(paths.size() - 1).toArray(new LngLat[0]);
-            deliveries.add(returnTrip);
+//            DeliveriesDTO returnTrip = new DeliveriesDTO();
+//            returnTrip.deliveryId = null;
+//            returnTrip.flightPath = paths.get(paths.size() - 1).toArray(new LngLat[0]);
+//            deliveries.add(returnTrip);
 
             dronePath.deliveries = deliveries.toArray(new DeliveriesDTO[0]);
             allDronePaths.add(dronePath);
@@ -430,8 +430,10 @@ public class DeliveryService {
             // calc total moves for current drone
             int droneMoves = 0;
             for (List<LngLat> path : paths) {
+                System.out.println("Trip path size: " + path.size()); // rem
                 droneMoves += path.size();
             }
+            System.out.println("Total moves for drone " + drone.id + ": " + droneMoves); //rem
             totalMoves += droneMoves;
 
             // calc total costs for current drone

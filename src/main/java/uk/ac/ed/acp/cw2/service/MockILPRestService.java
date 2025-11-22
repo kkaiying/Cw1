@@ -25,9 +25,14 @@ public class MockILPRestService {
                     location = new LngLat() {{ lng = -3.21779366417357; lat = 55.946147878599504; }};
                 }},
                 new ServicePointDTO() {{
-                    id = 2;
-                    name = "Ocean Terminal";
-                    location = new LngLat() {{ lng = -3.17732611501824; lat = 55.9811862793337; }};
+                    id = 4;
+                    name = "Princes Street";
+                    location = new LngLat() {{ lng = -3.197721929756682; lat = 55.95178716407966; }};
+                }},
+                new ServicePointDTO() {{
+                    id = 5;
+                    name = "Silverknowes";
+                    location = new LngLat() {{ lng = -3.274046165961039; lat = 55.9714412505958; }};
                 }},
         };
     }
