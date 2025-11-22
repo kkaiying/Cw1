@@ -94,6 +94,7 @@ public class DroneService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Drone not found!"));
     }
 
+
     public List<String> getAvailableDrones(List<MedDispatchRecDTO> dtos) {
         DronesForServicePointsDTO[] servicePointData = getDronesForServicePointsFromDB();
         ServicePointDTO[] servicePoints = ilpRestService.getServicePoint();
@@ -183,9 +184,15 @@ public class DroneService {
                 double capacityValue = Double.parseDouble(value);
                 return filterDroneByAttribute(drone -> drone.getCapacity() == capacityValue);
             case "cooling":
+                if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) {
+                    return Collections.emptyList();
+                }
                 boolean coolingValue = Boolean.parseBoolean(value);
                 return filterDroneByAttribute(drone -> drone.isHasCooling() == coolingValue);
             case "heating":
+                if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) {
+                    return Collections.emptyList();
+                }
                 boolean heatingValue = Boolean.parseBoolean(value);
                 return filterDroneByAttribute(drone -> drone.isHasHeating() == heatingValue);
             case "maxMoves":

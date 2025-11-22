@@ -37,6 +37,9 @@ public class DeliveryController {
 
     @PostMapping("/calcDeliveryPath")
     public DeliveryPathResponseDTO calcDeliveryPath(@Valid @RequestBody List<MedDispatchRecDTO> dispatches) {
+//        DeliveryPathResponseDTO response = deliveryService.getCalcDeliveryPath(dispatches); // REMOVE !!!!!
+//        deliveryService.validatePaths(response);
+//        return response;
         return deliveryService.getCalcDeliveryPath(dispatches);
     }
 
