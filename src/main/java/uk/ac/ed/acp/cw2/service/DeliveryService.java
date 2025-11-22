@@ -22,7 +22,7 @@ public class DeliveryService {
 
     private boolean canHandleDispatch(DroneDTO drone, MedDispatchRecDTO dispatch, DronesForServicePointsDTO[] dronesAvailability) {
         System.out.println("      canHandleDispatch: drone " + drone.id + ", dispatch " + dispatch.id); //rem
-        if (drone.capability.capacity <= dispatch.requirements.capacity) {
+        if (drone.capability.capacity < dispatch.requirements.capacity) {
             System.out.println("      ❌ Capacity: " + drone.capability.capacity + " < " + dispatch.requirements.capacity);
             return false;
         }
@@ -212,26 +212,27 @@ public class DeliveryService {
 
         for (DroneDTO drone : droneAssignments.keySet()) {
             List<MedDispatchRecDTO> assignedDispatches = droneAssignments.get(drone);
-            List<List<LngLat>> fullPath = new ArrayList<>();
-
             LngLat servicePoint = getServicePoint(drone.id, dronesAvailability, servicePoints);
-            LngLat currentPos = servicePoint;
 
-            for (MedDispatchRecDTO assignedDispatch : assignedDispatches) {
-                List<LngLat> path = pathFindingService.findPath(currentPos, assignedDispatch.delivery, restrictedAreas);
-                LngLat lastPos = path.get(path.size() - 1);
-                path.add(lastPos); // hover
-                fullPath.add(path);
+            List<List<LngLat>> allTrips = buildAllTripsForSingleDrone(drone, assignedDispatches, servicePoint, restrictedAreas);
 
-                currentPos = lastPos;
-            }
+            dronePaths.put(drone, allTrips);
 
-            // return to service point after drone completes dispatches
-            List<LngLat> returnPath = pathFindingService.findPath(currentPos, servicePoint, restrictedAreas);
-            LngLat finalPos = returnPath.get(returnPath.size() - 1); // add a final hover
-            returnPath.add(finalPos);
-            fullPath.add(returnPath);
-            dronePaths.put(drone, fullPath);
+//            for (MedDispatchRecDTO assignedDispatch : assignedDispatches) {
+//                List<LngLat> path = pathFindingService.findPath(currentPos, assignedDispatch.delivery, restrictedAreas);
+//                LngLat lastPos = path.get(path.size() - 1);
+//                path.add(lastPos); // hover
+//                fullPath.add(path);
+//
+//                currentPos = lastPos;
+//            }
+//
+//            // return to service point after drone completes dispatches
+//            List<LngLat> returnPath = pathFindingService.findPath(currentPos, servicePoint, restrictedAreas);
+//            LngLat finalPos = returnPath.get(returnPath.size() - 1); // add a final hover
+//            returnPath.add(finalPos);
+//            fullPath.add(returnPath);
+//            dronePaths.put(drone, fullPath);
         }
         return dronePaths;
     }
@@ -305,6 +306,25 @@ public class DeliveryService {
 
         Map<DroneDTO, List<MedDispatchRecDTO>> droneAssignments = assignDronesToDispatch(dispatchRequests, dronesAvailability, servicePoints);
 
+        Set<Integer> assignedDispatchIds = new HashSet<>();
+        for (List<MedDispatchRecDTO> dispatches : droneAssignments.values()) {
+            for (MedDispatchRecDTO d : dispatches) {
+                assignedDispatchIds.add(d.id);
+            }
+        }
+
+        List<MedDispatchRecDTO> unassigned = new ArrayList<>();
+        for (MedDispatchRecDTO req : dispatchRequests) {
+            if (!assignedDispatchIds.contains(req.id)) {
+                unassigned.add(req);
+            }
+        }
+
+        // if there are still any unassigned dispatches
+        if (!unassigned.isEmpty()) {
+            handleUnassignedDispatches(unassigned, droneAssignments, dronesAvailability);
+        }
+
         // REMOVE
         System.out.println("=== INITIAL DRONE ASSIGNMENTS ===");
         for (DroneDTO drone : droneAssignments.keySet()) {
@@ -348,6 +368,31 @@ public class DeliveryService {
         //-----------------
 
         return buildResponse(droneAssignments, allPaths);
+    }
+
+    private void handleUnassignedDispatches(List<MedDispatchRecDTO> unassigned,
+                                            Map<DroneDTO, List<MedDispatchRecDTO>> droneAssignments,
+                                            DronesForServicePointsDTO[] dronesAvailability) {
+        DroneDTO[] allDrones = droneService.getAllDronesFromDatabase();
+
+        for (MedDispatchRecDTO dispatch : unassigned) {
+            boolean assigned = false;
+
+            // find any drone that meets req
+            for (DroneDTO drone : allDrones) {
+                if (canHandleDispatch(drone, dispatch, dronesAvailability)) {
+                    DroneDTO existingDrone = findDroneInMap(droneAssignments, drone.id); // check if drone is assigned
+
+                    if (existingDrone != null) {
+                        droneAssignments.get(existingDrone).add(dispatch);
+                    } else {
+                        droneAssignments.put(drone, new ArrayList<>(List.of(dispatch)));
+                    }
+                    assigned = true;
+                    break;
+                }
+            }
+        }
     }
 
     public DeliveryPathResponseDTO buildResponse(Map<DroneDTO, List<MedDispatchRecDTO>> droneAssignments, Map<DroneDTO, List<List<LngLat>>> allPaths) {
@@ -402,68 +447,68 @@ public class DeliveryService {
     }
 
     public String getCalcDeliveryPathAsGeoJson(List<MedDispatchRecDTO> dispatch) {
-        //RestrictedAreaDTO[] restrictedArea = iLPRestService.getRestrictedAreas();
+        RestrictedAreaDTO[] restrictedArea = iLPRestService.getRestrictedAreas();
 
-        // ========= TEMPERORY RESTRICTED AREA TESTS WITH U SHAPE ======
-        RestrictedAreaDTO[] restrictedArea = new RestrictedAreaDTO[] {
-                new RestrictedAreaDTO() {{
-                    name = "Area 1";
-                    id = 1;
-                    limits = null;
-
-
-                    vertices = new LngLat[] {
-                            new LngLat() {{ lng = -3.1867573974861045; lat = 55.94485873962719; }},
-                            new LngLat() {{ lng = -3.1870330889591685; lat = 55.94482497827855; }},
-                            new LngLat() {{ lng = -3.1865414138885626; lat = 55.94398663999712; }},
-                            new LngLat() {{ lng = -3.186247876533372;  lat = 55.944019516350124; }},
-                            new LngLat() {{ lng = -3.1867573974861045; lat = 55.94485873962719; }}
-                    };
-                }},
-                new RestrictedAreaDTO() {{
-                    name = "Area 2";
-                    id = 2;
-                    limits = null;
-
-
-                    vertices = new LngLat[] {
-                            new LngLat() {{ lng = -3.186166438721557;   lat = 55.94505035539723; }},
-                            new LngLat() {{ lng = -3.1856987927620253; lat = 55.94514704795429; }},
-                            new LngLat() {{ lng = -3.1852023685889606; lat = 55.94422040101881; }},
-                            new LngLat() {{ lng = -3.1856915982080807; lat = 55.94413176406309; }},
-                            new LngLat() {{ lng = -3.186166438721557;   lat = 55.94505035539723; }}
-                    };
-                }},
-                new RestrictedAreaDTO() {{
-                    name = "Area 3";
-                    id = 3;
-                    limits = null;
-
-
-                    vertices = new LngLat[] {
-                            new LngLat() {{ lng = -3.1865414138885626; lat = 55.94398663999712; }},
-                            new LngLat() {{ lng = -3.1852023685889606; lat = 55.94422040101881; }},
-                            new LngLat() {{ lng = -3.1850153102011802; lat = 55.94397664890204; }},
-                            new LngLat() {{ lng = -3.186396664421295;  lat = 55.94373893874919; }},
-                            new LngLat() {{ lng = -3.1865414138885626; lat = 55.94398663999712; }}
-                    };
-                }},
-                new RestrictedAreaDTO() {{
-                    name = "Area X";
-                    id = 999;   // change to whatever ID you need
-                    limits = null;
-
-                    vertices = new LngLat[] {
-                            new LngLat() {{ lng = -3.1867573974861045; lat = 55.94485873962719; }},
-                            new LngLat() {{ lng = -3.1861815583688156; lat = 55.94493170435507; }},
-                            new LngLat() {{ lng = -3.18621225055864; lat = 55.94503639051214; }},
-                            new LngLat() {{ lng = -3.186788805392524;  lat = 55.944976476263975; }},
-                            new LngLat() {{ lng = -3.1867573974861045; lat = 55.94485873962719; }} // closing point
-                    };
-                }},
-
-        };
-// ==============================================================
+//        // ========= TEMPERORY RESTRICTED AREA TESTS WITH U SHAPE ======
+//        RestrictedAreaDTO[] restrictedArea = new RestrictedAreaDTO[] {
+//                new RestrictedAreaDTO() {{
+//                    name = "Area 1";
+//                    id = 1;
+//                    limits = null;
+//
+//
+//                    vertices = new LngLat[] {
+//                            new LngLat() {{ lng = -3.1867573974861045; lat = 55.94485873962719; }},
+//                            new LngLat() {{ lng = -3.1870330889591685; lat = 55.94482497827855; }},
+//                            new LngLat() {{ lng = -3.1865414138885626; lat = 55.94398663999712; }},
+//                            new LngLat() {{ lng = -3.186247876533372;  lat = 55.944019516350124; }},
+//                            new LngLat() {{ lng = -3.1867573974861045; lat = 55.94485873962719; }}
+//                    };
+//                }},
+//                new RestrictedAreaDTO() {{
+//                    name = "Area 2";
+//                    id = 2;
+//                    limits = null;
+//
+//
+//                    vertices = new LngLat[] {
+//                            new LngLat() {{ lng = -3.186166438721557;   lat = 55.94505035539723; }},
+//                            new LngLat() {{ lng = -3.1856987927620253; lat = 55.94514704795429; }},
+//                            new LngLat() {{ lng = -3.1852023685889606; lat = 55.94422040101881; }},
+//                            new LngLat() {{ lng = -3.1856915982080807; lat = 55.94413176406309; }},
+//                            new LngLat() {{ lng = -3.186166438721557;   lat = 55.94505035539723; }}
+//                    };
+//                }},
+//                new RestrictedAreaDTO() {{
+//                    name = "Area 3";
+//                    id = 3;
+//                    limits = null;
+//
+//
+//                    vertices = new LngLat[] {
+//                            new LngLat() {{ lng = -3.1865414138885626; lat = 55.94398663999712; }},
+//                            new LngLat() {{ lng = -3.1852023685889606; lat = 55.94422040101881; }},
+//                            new LngLat() {{ lng = -3.1850153102011802; lat = 55.94397664890204; }},
+//                            new LngLat() {{ lng = -3.186396664421295;  lat = 55.94373893874919; }},
+//                            new LngLat() {{ lng = -3.1865414138885626; lat = 55.94398663999712; }}
+//                    };
+//                }},
+//                new RestrictedAreaDTO() {{
+//                    name = "Area X";
+//                    id = 999;   // change to whatever ID you need
+//                    limits = null;
+//
+//                    vertices = new LngLat[] {
+//                            new LngLat() {{ lng = -3.1867573974861045; lat = 55.94485873962719; }},
+//                            new LngLat() {{ lng = -3.1861815583688156; lat = 55.94493170435507; }},
+//                            new LngLat() {{ lng = -3.18621225055864; lat = 55.94503639051214; }},
+//                            new LngLat() {{ lng = -3.186788805392524;  lat = 55.944976476263975; }},
+//                            new LngLat() {{ lng = -3.1867573974861045; lat = 55.94485873962719; }} // closing point
+//                    };
+//                }},
+//
+//        };
+//// ==============================================================
 
 
         DronesForServicePointsDTO[] dronesAvailability = iLPRestService.getDronesForServicePoints();
@@ -590,7 +635,6 @@ public class DeliveryService {
         List<LngLat> returnPath = pathFindingService.findPath(currentPos, servicePointLoc, restrictedAreas);
         path.addAll(returnPath);
         LngLat finalPos = returnPath.get(returnPath.size() - 1);
-        path.add(finalPos); // hover
 
         return path;
     }

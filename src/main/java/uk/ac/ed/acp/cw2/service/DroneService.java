@@ -105,6 +105,17 @@ public class DroneService {
     private boolean canHandleAllDeliveries(Drone drone, List<MedDispatchRecDTO> dtos, DronesForServicePointsDTO[] servicePointData, ServicePointDTO[] servicePoints) {
         System.out.println("Checking drone: " + drone.getId()); //remove
 
+        // calculate total capacity needed
+        double totalCapacity = 0;
+        for (MedDispatchRecDTO dto : dtos) {
+            totalCapacity += dto.requirements.capacity;
+        }
+
+        if (totalCapacity > drone.getCapacity()) {
+            return false;
+        }
+
+
         int numOfDispatches = dtos.size();
         LngLat servicePointLocation = getServicePointForDrone(drone.getId(), servicePointData, servicePoints);
         System.out.println("  Service point: " + servicePointLocation); //remove
