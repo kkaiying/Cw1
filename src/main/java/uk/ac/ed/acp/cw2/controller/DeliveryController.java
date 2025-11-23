@@ -37,7 +37,7 @@ public class DeliveryController {
 
     @PostMapping("/calcDeliveryPath")
     public DeliveryPathResponseDTO calcDeliveryPath(@Valid @RequestBody List<MedDispatchRecDTO> dispatches) {
-//        DeliveryPathResponseDTO response = deliveryService.getCalcDeliveryPath(dispatches); // REMOVE !!!!!
+//        DeliveryPathResponseDTO response = deliveryService.getCalcDeliveryPath(dispatches); // test distance
 //        deliveryService.validatePaths(response);
 //        return response;
         return deliveryService.getCalcDeliveryPath(dispatches);
