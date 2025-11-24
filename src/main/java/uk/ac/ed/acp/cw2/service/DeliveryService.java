@@ -71,17 +71,11 @@ public class DeliveryService {
                 for (DroneDTO droneAtServicePoint : dronesAtServicePoint) {
                     DroneDTO existingDrone = findDroneInMap(droneAssignments, droneAtServicePoint.id);
 
-                    System.out.println("Checking drone " + droneAtServicePoint.id + " for dispatch " + dispatch.id); //remove
-
                     if (existingDrone != null) {
-                        System.out.println("  Drone " + existingDrone.id + " is already assigned"); //rem
                         if (canHandleDispatch(existingDrone, dispatch, dronesAvailability)) {
-                            System.out.println("  ✅ CAN handle another dispatch!"); //rem
                             droneAssignments.get(existingDrone).add(dispatch);
                             assigned = true;
                             break;
-                        } else { //rem
-                            System.out.println("  ❌ CANNOT handle another dispatch");
                         }
                     }
                 }
@@ -93,7 +87,7 @@ public class DeliveryService {
         return droneAssignments;
     }
 
-    private DroneDTO findDroneInMap(Map<DroneDTO, List<MedDispatchRecDTO>> map, String droneId) {
+    public DroneDTO findDroneInMap(Map<DroneDTO, List<MedDispatchRecDTO>> map, String droneId) {
         for (DroneDTO drone : map.keySet()) {
             if (drone.id.equals(droneId)) {
                 return drone;
@@ -234,9 +228,7 @@ public class DeliveryService {
     }
 
     private boolean canHandleAnotherDispatch(DroneDTO drone, MedDispatchRecDTO newDispatch, List<MedDispatchRecDTO> assignedDispatches, DronesForServicePointsDTO[] dronesAvailability) {
-        System.out.println("    canHandleAnotherDispatch for drone " + drone.id + " and dispatch " + newDispatch.id); //rem
         if (!canHandleDispatch(drone, newDispatch, dronesAvailability)) {
-            System.out.println("    ❌ Failed canHandleDispatch"); //rem
             return false;
         }
 
@@ -244,13 +236,10 @@ public class DeliveryService {
         for (MedDispatchRecDTO assignedDispatch : assignedDispatches) {
             capacity += assignedDispatch.requirements.capacity;
         }
-        System.out.println("    Total capacity needed: " + capacity + ", Drone capacity: " + drone.capability.capacity); //rem
 
         if (drone.capability.capacity < capacity) {
-            System.out.println("    ❌ Exceeds capacity");
             return false;
         }
-        System.out.println("    ✅ Passed all checks");
         return true;
     }
 
@@ -348,17 +337,17 @@ public class DeliveryService {
 
         Map<DroneDTO, List<MedDispatchRecDTO>> droneAssignments = assignDronesToDispatch(dispatchRequests, dronesAvailability, servicePoints);
 
-        // REMOVE
-        System.out.println("=== INITIAL DRONE ASSIGNMENTS ===");
-        for (DroneDTO drone : droneAssignments.keySet()) {
-            List<MedDispatchRecDTO> dispatches = droneAssignments.get(drone);
-            System.out.println("Drone " + drone.id + " has " + dispatches.size() + " dispatches:");
-            for (MedDispatchRecDTO dispatch : dispatches) {
-                System.out.println("  - Dispatch ID: " + dispatch.id);
-            }
-        }
-        System.out.println("=========================");
-        // REMOVE
+        // Debugging stmnt - can remove
+//        System.out.println("=== INITIAL DRONE ASSIGNMENTS ===");
+//        for (DroneDTO drone : droneAssignments.keySet()) {
+//            List<MedDispatchRecDTO> dispatches = droneAssignments.get(drone);
+//            System.out.println("Drone " + drone.id + " has " + dispatches.size() + " dispatches:");
+//            for (MedDispatchRecDTO dispatch : dispatches) {
+//                System.out.println("  - Dispatch ID: " + dispatch.id);
+//            }
+//        }
+//        System.out.println("=========================");
+        //
 
         Map<DroneDTO, List<List<LngLat>>> allPaths = getPathForDrones(droneAssignments, restrictedAreas, dronesAvailability, servicePoints);
 
@@ -384,22 +373,22 @@ public class DeliveryService {
         }
 
         // REMOVE DEBUG LTR ######
-        System.out.println("\n=== FINAL DRONE ASSIGNMENTS (after reassignment) ===");
-        for (DroneDTO drone : droneAssignments.keySet()) {
-            List<MedDispatchRecDTO> dispatches = droneAssignments.get(drone);
-            List<List<LngLat>> paths = allPaths.get(drone);
-            int totalMoves = 0;
-            for (List<LngLat> path : paths) {
-                totalMoves += path.size();
-            }
-            System.out.println("Drone " + drone.id + " (maxMoves: " + drone.capability.maxMoves + "):");
-            System.out.println("  - Total moves: " + totalMoves);
-            System.out.println("  - Dispatches (" + dispatches.size() + "):");
-            for (MedDispatchRecDTO dispatch : dispatches) {
-                System.out.println("    * Dispatch ID: " + dispatch.id);
-            }
-        }
-        System.out.println("================================================\n");
+//        System.out.println("\n=== FINAL DRONE ASSIGNMENTS (after reassignment) ===");
+//        for (DroneDTO drone : droneAssignments.keySet()) {
+//            List<MedDispatchRecDTO> dispatches = droneAssignments.get(drone);
+//            List<List<LngLat>> paths = allPaths.get(drone);
+//            int totalMoves = 0;
+//            for (List<LngLat> path : paths) {
+//                totalMoves += path.size();
+//            }
+//            System.out.println("Drone " + drone.id + " (maxMoves: " + drone.capability.maxMoves + "):");
+//            System.out.println("  - Total moves: " + totalMoves);
+//            System.out.println("  - Dispatches (" + dispatches.size() + "):");
+//            for (MedDispatchRecDTO dispatch : dispatches) {
+//                System.out.println("    * Dispatch ID: " + dispatch.id);
+//            }
+//        }
+//        System.out.println("================================================\n");
         //-----------------
 
         return buildResponse(droneAssignments, allPaths);
@@ -489,8 +478,6 @@ public class DeliveryService {
 
         // try each capable drone until one successfully makes all dispatches without exceeding maxMoves constraint
         for (DroneDTO drone : capableDrones) {
-            System.out.println("TRYING CAPABLE DRONE " + drone.id);
-
             LngLat servicePointLoc = getServicePoint(drone.id, dronesAvailability, servicePoints); // get service point location for current drone
             //List<List<LngLat>> allTrips = buildTripsForSingleDrone(drone, dispatch, servicePointLoc, restrictedArea);
 
@@ -505,7 +492,6 @@ public class DeliveryService {
             for (List<LngLat> trip : allTrips) {
                 if (trip.size() > drone.capability.maxMoves) {
                     allTripsValid = false;
-                    System.out.println("Trip exceeds max moves !!!");
                     break;
                 }
             }
@@ -514,7 +500,6 @@ public class DeliveryService {
                 return convertToGeoJson(allTrips);
             }
         }
-        System.out.println("no capable drones....");
         return null; // no drone can handle
     }
 
@@ -537,16 +522,12 @@ public class DeliveryService {
         return capableDrones;
     }
 
-    // tries to build optimal trips
     public List<List<LngLat>> buildAllTripsForSingleDrone(DroneDTO drone, List<MedDispatchRecDTO> dispatches,
-                                                          LngLat servicePointLoc, RestrictedAreaDTO[] restrictedAreas) {
-        System.out.println("buildOptimalTrips for drone " + drone.id);
+                                                          LngLat servicePointLoc, RestrictedAreaDTO[] restrictedAreas) { // used or AsGeoJsom
         List<List<LngLat>> allTrips = new ArrayList<>();
         List<MedDispatchRecDTO> remainingDispatches =  new ArrayList<>(dispatches);
-        System.out.println("Remaining dispatches: " + remainingDispatches.size());
 
         while (!remainingDispatches.isEmpty()) {
-            System.out.println("Starting new trip, remaining: " + remainingDispatches.size());
             // try to fit as many dispatches as possible in this trip
             List<MedDispatchRecDTO> currentTrip = new ArrayList<>();
             double capacityUsed = 0;
@@ -561,40 +542,27 @@ public class DeliveryService {
 
             // check if current trip exceeds max moves
             while (tripPath.size() > drone.capability.maxMoves) {
-                System.out.println("Drone " + drone.id + "currently exceeds max moves");
-                System.out.println("Trip's current move count = " + tripPath.size());
                 currentTrip.remove(currentTrip.size() - 1);
                 tripPath = buildPathForTrip(currentTrip, servicePointLoc, restrictedAreas);
             }
 
             // if drone cant handle even 1 dispatch due to moves limits
             if (tripPath.size() > drone.capability.maxMoves) {
-                System.out.println("Drone " + drone.id + "unable to handle even one dispatch");
-                return new ArrayList<>(); // go to next drone ?>??
+                return new ArrayList<>();
             }
 
             allTrips.add(tripPath);
             remainingDispatches.removeAll(currentTrip);
         }
-        System.out.println("Returning " + allTrips.size() + " trips");
         return allTrips;
     }
 
     private List<LngLat> buildPathForTrip(List<MedDispatchRecDTO> dispatches, LngLat servicePointLoc, RestrictedAreaDTO[] restrictedAreas) {
-        System.out.println("buildPathForTrip for " + dispatches.size() + " dispatches");
         List<LngLat> path = new ArrayList<>();
         LngLat currentPos = servicePointLoc;
 
         for (MedDispatchRecDTO dispatch : dispatches) {
             List<LngLat> toDispatch = pathFindingService.findPath(currentPos, dispatch.delivery, restrictedAreas);
-
-            // ======= rem =======
-            System.out.println("Path to dispatch " + dispatch.id + ": " + toDispatch.size() + " moves");
-            if (toDispatch.isEmpty()) {
-                System.out.println("❌ Path is empty!");
-                return new ArrayList<>();
-            }
-            //======= rem =====
 
             path.addAll(toDispatch);
             LngLat lastPos = toDispatch.get(toDispatch.size() - 1);

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Service Point Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        /* Sidebar styling */
+        #sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 300px;
+            background: #f7f7f7;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
+            padding: 10px;
+            font-family: sans-serif;
+            z-index: 1000;
+        }
+
+        /* Map occupies remaining space */
+        #map {
+            margin-left: 300px;
+            width: calc(100% - 300px);
+            height: 100vh;
+        }
+
+        /* Drone list styles */
+        .drone {
+            cursor: pointer;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .drone-details {
+            padding-left: 10px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    const map = L.map('map').setView([55.944, -3.187], 13); // center on edin
+
+    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+
+    fetch('/api/cw3/mockServicePoints')
+        .then(response => response.json())
+        .then(points => {
+            points.forEach(sp =>  {
+                L.marker([sp.location.lat, sp.location.lng])
+                    .addTo(map)
+                    .bindPopup(`<b>${sp.name}</b>`);
+            });
+        })
+        .catch(err => console.error(err))
+
+    fetch('/api/cw3/mockRestrictedAreas')
+        .then(response => response.json())
+        .then(areas => {
+            areas.forEach(area => {
+                // Convert the vertices to a Leaflet-friendly array [[lat, lng], [lat, lng], ...]
+                const latlngs = area.vertices.map(v => [v.lat, v.lng]);
+
+                // Add polygon to the map
+                L.polygon(latlngs, {
+                    color: 'red',      // outline color
+                    fillColor: 'red',  // fill color
+                    fillOpacity: 0.3   // transparency
+                }).addTo(map)
+                    .bindPopup(`<b>${area.name}</b>`);  // optional popup
+            });
+        })
+        .catch(err => console.error(err));
+
+    fetch("/api/cw3/mockMedDispatchRecs")
+        .then(res => res.json())
+        .then(dispatchList => {
+            renderDispatchPoints(dispatchList);
+        });
+
+    // display all dispatches
+    function renderDispatchPoints(list) {
+        list.forEach(rec => {
+            const { lng, lat } = rec.delivery;
+
+            L.circleMarker([lat, lng], {
+                radius: 3,
+                color: "red",
+                fillColor: "red",
+                fillOpacity: 0.7,
+                weight: 1
+            }).addTo(map);
+        });
+    }
+
+
+</script>
+</body>
+</html>

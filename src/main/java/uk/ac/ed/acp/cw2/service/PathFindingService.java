@@ -43,8 +43,6 @@ public class PathFindingService {
 
         // initialising start point
         double heuristic = calculationService.calculateDistanceTo(start, goal);
-        System.out.println("Start to goal distance: " + heuristic);
-        System.out.println("Expected moves: ~" + (heuristic / 0.00015));
         Node startNode = new Node(start, 0, heuristic, null);
         openSet.add(startNode);
         bestGScore.put(roundedKey(start), 0.0);
@@ -69,11 +67,6 @@ public class PathFindingService {
 
 
             if (calculationService.isDistanceCloseTo(current.position, goal)) {
-                System.out.println("Duplicates skipped: " + duplicatesSkipped);
-                System.out.println("New positions: " + newPositions);
-                System.out.println("Rejected moving away: " + rejectedMovingAway);
-                System.out.println("Nodes explored: " + nodesExplored);
-                System.out.println("Path length: " + reconstructPath(current).size());
                 return reconstructPath(current);
             }
 
@@ -111,11 +104,6 @@ public class PathFindingService {
 
     private String roundedKey(LngLat pos) {
         return String.format("%.5f, %.5f", pos.lng, pos.lat);
-
-        // round to nearest 0.00015
-//        double roundedLng = Math.round(pos.lng / 0.00015) * 0.00015;
-//        double roundedLat = Math.round(pos.lat / 0.00015) * 0.00015;
-//        return roundedLng + "," + roundedLat;
     }
 
     private List<LngLat> reconstructPath(Node node) {
@@ -146,8 +134,6 @@ public class PathFindingService {
     }
 
     public List<LngLat> findPathForSingleDelivery(LngLat droneServicePoint, MedDispatchRecDTO dispatchRequest, RestrictedAreaDTO[] restrictedAreas){
-        //droneServicePoint = start coordinate
-        //dispatchRequest.delivery = end goal
         List<LngLat> pathToDestination = findPath(droneServicePoint, dispatchRequest.delivery, restrictedAreas);
         pathToDestination.add(dispatchRequest.delivery); // hover
         return pathToDestination;
@@ -165,12 +151,9 @@ public class PathFindingService {
 
         // initialising start point
         double heuristic = calculationService.calculateDistanceTo(start, goal);
-        System.out.println("Start to goal distance: " + heuristic);
-        System.out.println("Expected moves: ~" + (heuristic / 0.00015));
         Node startNode = new Node(start, 0, heuristic, null);
         openSet.add(startNode);
         bestGScore.put(roundedKey(start), 0.0);
-
 
         int nodesExplored = 0; // debug, remove after
         int duplicatesSkipped = 0;
@@ -191,10 +174,6 @@ public class PathFindingService {
 
 
             if (calculationService.isDistanceCloseTo(current.position, goal)) {
-                System.out.println("Duplicates skipped: " + duplicatesSkipped);
-                System.out.println("BestGScore size: " + bestGScore.size());
-                System.out.println("Nodes explored: " + nodesExplored);
-                System.out.println("Path length: " + reconstructPath(current).size());
                 return reconstructPath(current);
             }
 
