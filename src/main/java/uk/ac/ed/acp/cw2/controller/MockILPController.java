@@ -4,10 +4,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.ac.ed.acp.cw2.dto.MedDispatchRecDTO;
-import uk.ac.ed.acp.cw2.dto.MockMedDispatchRecDTO;
-import uk.ac.ed.acp.cw2.dto.MockServicePointDTO;
-import uk.ac.ed.acp.cw2.dto.RestrictedAreaDTO;
+import uk.ac.ed.acp.cw2.dto.*;
 import uk.ac.ed.acp.cw2.service.MockILPRestService;
 import uk.ac.ed.acp.cw2.service.MockMedDispatchRecData;
 
@@ -43,6 +40,16 @@ public class MockILPController {
     @GetMapping("/servicePoint/{id}")
     public MockServicePointDTO getServicePointById(@PathVariable int id) {
         return mockILPRestService.getServicePointById(id);
+    }
+
+    @GetMapping("/drone/{id}")
+    public MockDroneDTO getDroneById(@PathVariable String id) {
+        return mockILPRestService.getDroneById(id);
+    }
+
+    @GetMapping("/dispatch/{id}")
+    public MockMedDispatchRecDTO getDispatchById(@PathVariable int id) {
+        return mockILPRestService.getDispatchById(id);
     }
 
     @GetMapping("/mockAppletonTowerDispatches")
