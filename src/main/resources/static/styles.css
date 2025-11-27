@@ -11,13 +11,21 @@
     padding: 10px;
     font-family: sans-serif;
     z-index: 1000;
+}
 
+body {
+    margin: 0;
+    padding: 0;
 }
 
 #map {
     margin-left: 300px;
     width: calc(100% - 300px);
     height: 100vh;
+}
+
+.leaflet-tile {
+    border: none !important;
 }
 
 .drone {
@@ -29,4 +37,36 @@
 .drone-details {
     padding-left: 10px;
     display: none;
+}
+
+#heatmap-legend {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    background: rgb(40, 43, 40);
+    padding: 15px;
+    border-radius: 5px;
+    color: white;
+    z-index: 1000;
+    font-family: sans-serif;
+}
+
+#heatmap-legend h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+}
+
+.legend-gradient {
+    height: 20px;
+    width: 200px;
+    background: linear-gradient(to right, blue, cyan, lime, yellow, orange, red);
+    border-radius: 3px;
+    margin-bottom: 5px;
+}
+
+.legend-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    width: 200px;
 }

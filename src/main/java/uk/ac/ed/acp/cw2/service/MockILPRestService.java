@@ -2680,7 +2680,7 @@ public class MockILPRestService {
                     delivery = new LngLat() {{ lng = -3.244510168425279; lat = 55.978628944516885; }};
                     cooling = true;
                     heating = true;
-                    capacity = 1;
+                    capacity = 7;
                     maxCost = 15.0;
                     assignedDroneId = null;
                     assignedServicePointId = 5;
@@ -2692,7 +2692,7 @@ public class MockILPRestService {
                     delivery = new LngLat() {{ lng = -3.243643416519973; lat = 55.97846729434431; }};
                     cooling = false;
                     heating = false;
-                    capacity = 1;
+                    capacity = 10;
                     maxCost = 15.0;
                     assignedDroneId = null;
                     assignedServicePointId = 5;
@@ -2706,6 +2706,126 @@ public class MockILPRestService {
                     heating = false;
                     capacity = 1;
                     maxCost = 15.0;
+                    assignedDroneId = null;
+                    assignedServicePointId = 5;
+                }},
+                new MockMedDispatchRecDTO() {{
+                    id = 526;
+                    date = LocalDate.of(2025, 11, 24);
+                    time = LocalTime.of(12, 0);
+                    delivery = new LngLat() {{ lng = -3.2706291167597783; lat = 55.96822381259972; }};
+                    cooling = true;
+                    heating = false;
+                    capacity = 7;
+                    maxCost = 18.0;
+                    assignedDroneId = null;
+                    assignedServicePointId = 5;
+                }},
+                new MockMedDispatchRecDTO() {{
+                    id = 527;
+                    date = LocalDate.of(2025, 11, 24);
+                    time = LocalTime.of(12, 0);
+                    delivery = new LngLat() {{ lng = -3.2645997227457713; lat = 55.96699728460254; }};
+                    cooling = false;
+                    heating = true;
+                    capacity = 3;
+                    maxCost = 12.0;
+                    assignedDroneId = null;
+                    assignedServicePointId = 5;
+                }},
+                new MockMedDispatchRecDTO() {{
+                    id = 528;
+                    date = LocalDate.of(2025, 11, 24);
+                    time = LocalTime.of(12, 0);
+                    delivery = new LngLat() {{ lng = -3.259784106206098; lat = 55.96724287508954; }};
+                    cooling = false;
+                    heating = false;
+                    capacity = 5;
+                    maxCost = 14.0;
+                    assignedDroneId = null;
+                    assignedServicePointId = 5;
+                }},
+                new MockMedDispatchRecDTO() {{
+                    id = 529;
+                    date = LocalDate.of(2025, 11, 24);
+                    time = LocalTime.of(12, 0);
+                    delivery = new LngLat() {{ lng = -3.2662650576233148; lat = 55.97061850551938; }};
+                    cooling = true;
+                    heating = false;
+                    capacity = 9;
+                    maxCost = 20.0;
+                    assignedDroneId = null;
+                    assignedServicePointId = 5;
+                }},
+                new MockMedDispatchRecDTO() {{
+                    id = 530;
+                    date = LocalDate.of(2025, 11, 24);
+                    time = LocalTime.of(12, 0);
+                    delivery = new LngLat() {{ lng = -3.257826346669475; lat = 55.973011612561095; }};
+                    cooling = false;
+                    heating = true;
+                    capacity = 4;
+                    maxCost = 16.0;
+                    assignedDroneId = null;
+                    assignedServicePointId = 5;
+                }},
+                new MockMedDispatchRecDTO() {{
+                    id = 531;
+                    date = LocalDate.of(2025, 11, 24);
+                    time = LocalTime.of(12, 0);
+                    delivery = new LngLat() {{ lng = -3.25420848335375; lat = 55.97074169373957; }};
+                    cooling = true;
+                    heating = false;
+                    capacity = 2;
+                    maxCost = 11.0;
+                    assignedDroneId = null;
+                    assignedServicePointId = 5;
+                }},
+                new MockMedDispatchRecDTO() {{
+                    id = 532;
+                    date = LocalDate.of(2025, 11, 24);
+                    time = LocalTime.of(12, 0);
+                    delivery = new LngLat() {{ lng = -3.258923533604843; lat = 55.970680689081945; }};
+                    cooling = false;
+                    heating = false;
+                    capacity = 8;
+                    maxCost = 17.0;
+                    assignedDroneId = null;
+                    assignedServicePointId = 5;
+                }},
+                new MockMedDispatchRecDTO() {{
+                    id = 533;
+                    date = LocalDate.of(2025, 11, 24);
+                    time = LocalTime.of(12, 0);
+                    delivery = new LngLat() {{ lng = -3.280242762294222; lat = 55.9674251797058; }};
+                    cooling = true;
+                    heating = true;
+                    capacity = 6;
+                    maxCost = 19.0;
+                    assignedDroneId = null;
+                    assignedServicePointId = 5;
+                }},
+                new MockMedDispatchRecDTO() {{
+                    id = 534;
+                    date = LocalDate.of(2025, 11, 24);
+                    time = LocalTime.of(12, 0);
+                    delivery = new LngLat() {{ lng = -3.271608502539209; lat = 55.963380620830094; }};
+                    cooling = false;
+                    heating = true;
+                    capacity = 5;
+                    maxCost = 13.0;
+                    assignedDroneId = null;
+                    assignedServicePointId = 5;
+                }},
+                new MockMedDispatchRecDTO() {{
+                    id = 535;
+                    date = LocalDate.of(2025, 11, 24);
+                    time = LocalTime.of(12, 0);
+                    delivery = new LngLat() {{ lng = -3.2647008133224915; lat = 55.96460671684221; }};
+                    cooling = true;
+                    heating = false;
+                    capacity = 10;
+                    maxCost = 21.0;
                     assignedDroneId = null;
                     assignedServicePointId = 5;
                 }}

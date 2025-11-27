@@ -11,11 +11,22 @@
     <h2>Select a service point</h2>
 </div>
 <div id="map"></div>
+<div id="heatmap-legend">
+    <h4>Dispatches demand</h4>
+    <div class="legend-gradient"></div>
+    <div class="legend-labels">
+        <span>Low</span>
+        <span>High</span>
+    </div>
+</div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <script>
-    const map = L.map('map').setView([55.963336127277415, -3.221583476122788], 13.4);
+    const map = L.map('map', {
+        zoomSnap: 0.25,
+        zoomDelta: 0.25
+    }).setView([55.963336127277415, -3.221583476122788], 13.3);
 
     L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
         maxZoom: 20,
@@ -67,15 +78,16 @@
 
         sidebar.innerHTML = `
           <h2>${sp.name} Service Point</h2>
-          <p><strong>Total drones:</strong> ${sp.drones.length}</p>
-          <p><strong>Total dispatches:</strong> ${totalDispatches}</p>
-          <p><strong>Avg dispatches/drone:</strong> ${avgDispatchesPerDrone.toFixed(1)}</p>
-          <p style="color: ${workloadColor}; font-weight: bold;">
-              <strong>Workload Status:</strong> ${workloadStatus}
-          </p>
-          ${avgDispatchesPerDrone >= 8 ? '<p style="color: red;">⚠️ Recommend deploying additional drones</p>' : ''}
-          <h3>Drones</h3>
-          <div id="drone-list"></div>
+      <p><strong>Total drones:</strong> ${sp.drones.length}</p>
+      <p><strong>Total dispatches assigned:</strong> ${totalDispatches}</p>
+      <p><strong>Avg dispatches/drone:</strong> ${avgDispatchesPerDrone.toFixed(1)}</p>
+      <p style="color: ${workloadColor}; font-weight: bold;">
+          <strong>Workload Status:</strong> ${workloadStatus}
+      </p>
+      ${avgDispatchesPerDrone >= 8 ? '<p style="color: red;">⚠️ Recommend deploying additional drones</p>' : ''}
+      <hr style="border: none; border-top: 1px solid #555; margin: 15px 0;">
+      <h3>Drones</h3>
+      <div id="drone-list"></div>
       `;
 
         const droneList = document.getElementById('drone-list');
