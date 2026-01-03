@@ -9,17 +9,18 @@ far_avg = [29.00, 36.50, 49.14, 84.46, 79.96, 157.76, 134.22, 131.12, 152.92, 19
 x = range(len(nfz_sizes))
 width = 0.35
 
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, ax = plt.subplots(figsize=(6, 4))
 ax.bar([i - width/2 for i in x], close_avg, width, label='Close')
 ax.bar([i + width/2 for i in x], far_avg, width, label='Far')
 
 ax.axhline(y=200, color='black', linestyle='--', linewidth=1.5)
 
-ax.set_xlabel('NFZ Database Size')
-ax.set_ylabel('Average Time (ms)')
-ax.set_title('findPath() Average Runtime by NFZ Database Size')
+ax.set_xlabel('NFZ Database Size', fontsize=12)
+ax.set_ylabel('Average Time (ms)', fontsize=12)
+
 ax.set_xticks(x)
-ax.set_xticklabels(nfz_sizes)
-ax.legend()
+ax.set_xticklabels(nfz_sizes, fontsize=10)
+ax.tick_params(axis='y', labelsize=10)
+ax.legend(fontsize=11)
 plt.tight_layout()
 plt.show()
