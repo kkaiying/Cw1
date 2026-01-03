@@ -93,7 +93,6 @@ public class MockILPRestService {
     }
 
 
-    // ===========================================================================================
     // DATABASE
 
     public MockServicePointDTO[] getMockServicePoints() {
@@ -1937,7 +1936,7 @@ public class MockILPRestService {
                     time = LocalTime.of(12, 0);
                     delivery = new LngLat() {{ lng = -3.217888631644115; lat = 55.95446505055244; }};
                     cooling = true;
-                    heating = true; // rare true/true
+                    heating = true;
                     capacity = 12;
                     maxCost = 18;
                     assignedDroneId = null;
@@ -2499,7 +2498,7 @@ public class MockILPRestService {
                     time = LocalTime.of(12, 0);
                     delivery = new LngLat() {{ lng = -3.2507083050471124; lat = 55.967660319024105; }};
                     cooling = true;
-                    heating = true; // rare true/true
+                    heating = true;
                     capacity = 12;
                     maxCost = 18;
                     assignedDroneId = null;
@@ -3020,7 +3019,7 @@ public class MockILPRestService {
                     time = LocalTime.of(12, 0);
                     delivery = new LngLat() {{ lng = -3.2346738825512773; lat = 55.96366894553316; }};
                     cooling = true;
-                    heating = true; // rare combo
+                    heating = true;
                     capacity = 11;
                     maxCost = 19;
                     assignedDroneId = null;
@@ -3152,7 +3151,7 @@ public class MockILPRestService {
                     time = LocalTime.of(12, 0);
                     delivery = new LngLat() {{ lng = -3.2303554572370103; lat = 55.958438311982206; }};
                     cooling = true;
-                    heating = true; // rare
+                    heating = true;
                     capacity = 12;
                     maxCost = 19;
                     assignedDroneId = null;

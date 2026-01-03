@@ -578,29 +578,29 @@ public class DeliveryService {
         return path;
     }
 
-    public List<List<LngLat>> buildTripsForSingleDrone(DroneDTO drone, List<MedDispatchRecDTO> dispatches, LngLat servicePointLoc, RestrictedAreaDTO[] restrictedArea) {
-        List<List<LngLat>> allTrips = new ArrayList<>();
-
-        // each iteration is a trip for a single dispatch (to and back)
-        for (MedDispatchRecDTO dispatch : dispatches) {
-            List<LngLat> trip = new ArrayList<>();
-
-            // to dispatch location
-            List<LngLat> toDispatch = pathFindingService.findPathA(servicePointLoc, dispatch.delivery, restrictedArea);
-            trip.addAll(toDispatch);
-            LngLat lastPos = toDispatch.get(toDispatch.size() - 1); // hover coordinate
-            trip.add(lastPos); // add hover
-
-            // return to service point
-            List<LngLat> returnTrip = pathFindingService.findPathA(lastPos, servicePointLoc, restrictedArea);
-            trip.addAll(returnTrip);
-            LngLat finalPos = returnTrip.get(returnTrip.size() - 1);
-            trip.add(finalPos);
-
-            allTrips.add(trip);
-        }
-        return allTrips;
-    }
+//    public List<List<LngLat>> buildTripsForSingleDrone(DroneDTO drone, List<MedDispatchRecDTO> dispatches, LngLat servicePointLoc, RestrictedAreaDTO[] restrictedArea) {
+//        List<List<LngLat>> allTrips = new ArrayList<>();
+//
+//        // each iteration is a trip for a single dispatch (to and back)
+//        for (MedDispatchRecDTO dispatch : dispatches) {
+//            List<LngLat> trip = new ArrayList<>();
+//
+//            // to dispatch location
+//            List<LngLat> toDispatch = pathFindingService.findPathA(servicePointLoc, dispatch.delivery, restrictedArea);
+//            trip.addAll(toDispatch);
+//            LngLat lastPos = toDispatch.get(toDispatch.size() - 1); // hover coordinate
+//            trip.add(lastPos); // add hover
+//
+//            // return to service point
+//            List<LngLat> returnTrip = pathFindingService.findPathA(lastPos, servicePointLoc, restrictedArea);
+//            trip.addAll(returnTrip);
+//            LngLat finalPos = returnTrip.get(returnTrip.size() - 1);
+//            trip.add(finalPos);
+//
+//            allTrips.add(trip);
+//        }
+//        return allTrips;
+//    }
 
     private String convertToGeoJson(List<List<LngLat>> allTrips) {
         StringBuilder sb = new StringBuilder();

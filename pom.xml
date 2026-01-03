@@ -97,6 +97,37 @@
                     </environmentVariables>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.17.1</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.1</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <targetClasses>
+                        <param>uk.ac.ed.acp.cw2.service.PathFindingService</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>uk.ac.ed.acp.cw2.service.PathFindingServiceTest</param>
+                    </targetTests>
+                    <excludedMethods>
+                        <param>findPath</param>
+                        <param>reconstructPath</param>
+                        <param>roundedKey</param>
+                    </excludedMethods>
+                    <timeoutConstant>120000</timeoutConstant>
+                    <timeoutFactor>4.0</timeoutFactor>
+                    <jvmArgs>
+                        <value>-Xmx4096m</value>
+                    </jvmArgs>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

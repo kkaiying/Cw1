@@ -42,7 +42,6 @@
                     .addTo(map)
                     .bindPopup(`<b>${sp.name}</b>`);
 
-                // Click handler
                 marker.on('click', () => {
                     displayServicePointDetails(sp);
                 });
@@ -137,20 +136,6 @@
         });
     }
 
-    // Restricted areas
-    // fetch('/api/cw3/mockRestrictedAreas')
-    //     .then(response => response.json())
-    //     .then(areas => {
-    //         areas.forEach(area => {
-    //             const coords = area.vertices.map(v => [v.lat, v.lng]);
-    //             L.polygon(coords, {
-    //                 color: 'red',
-    //                 fillColor: '#f03',
-    //                 fillOpacity: 0.3
-    //             }).addTo(map).bindPopup(`<b>${area.name}</b>`);
-    //         });
-    //     });
-
     // Heatmap for dispatches
     fetch('/api/cw3/mockDispatches')
         .then(response => response.json())
@@ -158,10 +143,10 @@
             // Heatmap layer
             const heatData = dispatches.map(d => [d.delivery.lat, d.delivery.lng, 0.5]);
             L.heatLayer(heatData, {
-                radius: 35,        // Increase from 25 to make it wider
-                blur: 25,          // Increase blur for smoother gradient
+                radius: 35,
+                blur: 25,
                 maxZoom: 17,
-                max: 0.5,          // Add this - lower max intensity shows more colors
+                max: 0.5,
                 gradient: {
                     0.0: 'blue',
                     0.2: 'cyan',
