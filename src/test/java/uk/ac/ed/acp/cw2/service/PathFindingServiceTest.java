@@ -20,6 +20,9 @@ public class PathFindingServiceTest {
     private RestrictedAreaDTO testArea3; // rectangle on dest_far
     private RestrictedAreaDTO testArea4; // U shape around origin_far
     private RestrictedAreaDTO testArea5; // U shape around dest_far
+    private RestrictedAreaDTO testArea6;
+    private RestrictedAreaDTO testArea7;
+    private RestrictedAreaDTO testArea8;
     private LngLat origin_close;
     private LngLat dest_close;
     private LngLat origin_far;
@@ -156,6 +159,40 @@ public class PathFindingServiceTest {
         d9.lng = -3.170759900898048;
         d9.lat = 55.975419289848986;
         testArea5.vertices = new LngLat[] { d1, d2, d3, d4, d5, d6, d7, d8, d9 };
+
+        testArea6 = new RestrictedAreaDTO();
+        LngLat e1 = new LngLat();
+        e1.lng = -3.311700381062309;
+        e1.lat = 55.93761360779632;
+        LngLat e2 = new LngLat();
+        e2.lng = -3.158990180247571;
+        e2.lat = 55.94026328689057;
+        LngLat e3 = new LngLat();
+        e3.lng = -3.1580669395247867;
+        e3.lat = 55.93042133860246;
+        LngLat e4 = new LngLat();
+        e4.lng = -3.3116976398269173;
+        e4.lat = 55.92704692957071;
+        LngLat e5 = new LngLat();
+        e5.lng = -3.311700381062309;
+        e5.lat = 55.93761360779632;
+        testArea6.vertices = new LngLat[] { e1, e2, e3, e4, e5 };
+
+        testArea7 = new RestrictedAreaDTO();
+        LngLat f1 = new LngLat(); f1.lng = -3.2835358655523805; f1.lat = 55.9593938194522;
+        LngLat f2 = new LngLat(); f2.lng = -3.130523239811339; f2.lat = 55.96146506598811;
+        LngLat f3 = new LngLat(); f3.lng = -3.1312919810427786; f3.lat = 55.94580848692067;
+        LngLat f4 = new LngLat(); f4.lng = -3.285046042135491; f4.lat = 55.944803856205084;
+        LngLat f5 = new LngLat(); f5.lng = -3.2835358655523805; f5.lat = 55.9593938194522;
+        testArea7.vertices = new LngLat[] { f1, f2, f3, f4, f5 };
+
+        testArea8 = new RestrictedAreaDTO();
+        LngLat g1 = new LngLat(); g1.lng = -3.2854120230500428; g1.lat = 55.975311422620564;
+        LngLat g2 = new LngLat(); g2.lng = -3.1784746384293783; g2.lat = 55.97621213082175;
+        LngLat g3 = new LngLat(); g3.lng = -3.1808707534214022; g3.lat = 55.96816401135777;
+        LngLat g4 = new LngLat(); g4.lng = -3.3031050187965434; g4.lat = 55.96590635607214;
+        LngLat g5 = new LngLat(); g5.lng = -3.2854120230500428; g5.lat = 55.975311422620564;
+        testArea8.vertices = new LngLat[] { g1, g2, g3, g4, g5 };
     }
 
     @Test
@@ -271,6 +308,13 @@ public class PathFindingServiceTest {
     void testFindPath_bigNFZBetweenPoints() {
         List<LngLat> path = pathFindingService.findPath(origin_far, dest_far, new RestrictedAreaDTO[]{testArea2});
         assertTrue(pathDoesNotCrossNFZ(path, new RestrictedAreaDTO[]{testArea2}));
+    }
+
+    @Test
+    @DisplayName("Many big NFZ between points")
+    void testFindPath_manyNFZBetweenPoints() {
+        List<LngLat> path = pathFindingService.findPath(origin_far, dest_far, new RestrictedAreaDTO[]{testArea6, testArea7, testArea8});
+        assertTrue(pathDoesNotCrossNFZ(path, new RestrictedAreaDTO[]{testArea6, testArea7, testArea8}));
     }
 
     @Test
