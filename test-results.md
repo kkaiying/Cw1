@@ -7,13 +7,13 @@
 ## Correctness Testing Results (Requirement (i))
 
 ### Systematic Tests 
-| Test Case                         | Result |
-|-----------------------------------|--------|
-| Lagre NFZ blocking between points | PASS   |
-| Many large NFZ between points | PASS |
-| Destination inside NFZ            | PASS   |
-| Origin surrounded by NFZ          | PASS   |
-| Destination surrounded by NFZ | PASS |
+| Test Case                               | Result |
+|-----------------------------------------|--------|
+| Large NFZ blocking between points       | PASS   |
+| Many large NFZ between points           | PASS |
+| Destination inside NFZ                  | PASS   |
+| Origin surrounded by NFZ                | PASS   |
+| Destination surrounded by NFZ           | PASS |
 | Origin and destination suroruned by NFZ | PASS |
 
 ### Random Tests 
@@ -54,4 +54,4 @@
 - Generated 11 mutations Killed 11 (100%)
 - Mutations with no coverage 0. Test strength 100%
 - Ran 19 tests (1.73 tests per mutation)
-- Pit test coverage report can be viewed [here](https://kkaiying.github.io/Cw1/mutation-testing/index.html)
+- PIT test coverage report can be viewed [here](https://kkaiying.github.io/Cw1/mutation-testing/index.html)
