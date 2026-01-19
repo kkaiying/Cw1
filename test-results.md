@@ -7,14 +7,14 @@
 ## Correctness Testing Results (Requirement (i))
 
 ### Systematic Tests 
-| Test Case                               | Result |
-|-----------------------------------------|--------|
-| Large NFZ blocking between points       | PASS   |
-| Many large NFZ between points           | PASS |
-| Destination inside NFZ                  | PASS   |
-| Origin surrounded by NFZ                | PASS   |
-| Destination surrounded by NFZ           | PASS |
-| Origin and destination suroruned by NFZ | PASS |
+| Test Case                                | Result |
+|------------------------------------------|--------|
+| Large NFZ blocking between points        | PASS   |
+| Many large NFZ between points            | PASS |
+| Destination inside NFZ                   | PASS   |
+| Origin surrounded by NFZ                 | PASS   |
+| Destination surrounded by NFZ            | PASS |
+| Origin and destination surrounded by NFZ | PASS |
 
 ### Random Tests 
 | NFZ Size | Close Pass/Fail | Far Pass/Fail |
